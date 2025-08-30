@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
 import { LoanModule } from './loan/loan.module';
 import { RepaymentModule } from './repayment/repayment.module';
 import { TransactionModule } from './transaction/transaction.module';
@@ -24,6 +25,7 @@ import { ConfigModule } from '@nestjs/config';
       synchronize: true, // ❗ For dev only (auto-create tables)
     }),
     LoggerModule,
+    AuthModule,
     UserModule,
     LoanModule,
     RepaymentModule,

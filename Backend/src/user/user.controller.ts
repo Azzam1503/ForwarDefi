@@ -8,6 +8,7 @@ import {
   UploadedFile,
   UseInterceptors,
   BadRequestException,
+  HttpStatus,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserService } from './user.service';
@@ -16,12 +17,51 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { Correlation } from 'src/core/correlation/correlation.decorator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { GetUser } from 'src/auth/get-user.decorator';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiBody,
+} from '@nestjs/swagger';
 
+@ApiTags('users')
 @Controller('users')
 export class UserController {
   constructor(private readonly user_service: UserService) {}
 
   @Post('signup')
+  @ApiOperation({
+    summary: 'User registration',
+    description: 'Register a new user account',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'User registered successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', example: 'User registered successfully' },
+        data: {
+          type: 'object',
+          properties: {
+            user_id: { type: 'string', example: 'uuid-string' },
+            first_name: { type: 'string', example: 'John' },
+            last_name: { type: 'string', example: 'Doe' },
+            email: { type: 'string', example: 'john.doe@example.com' },
+            phone_number: { type: 'string', example: '+1234567890' },
+            is_admin: { type: 'boolean', example: false },
+            is_active: { type: 'boolean', example: true },
+            created_at: { type: 'string', format: 'date-time' },
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - Email already exists or validation failed',
+  })
   async signup(
     @Correlation() correlation_id: string,
     @Body() create_user_dto: CreateUserDto,
@@ -30,6 +70,44 @@ export class UserController {
   }
 
   @Post('login')
+  @ApiOperation({
+    summary: 'User login',
+    description: 'Authenticate user and return JWT token',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Login successful',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', example: 'Login successful' },
+        data: {
+          type: 'object',
+          properties: {
+            token: { type: 'string', example: 'jwt-token-string' },
+            user: {
+              type: 'object',
+              properties: {
+                user_id: { type: 'string', example: 'uuid-string' },
+                first_name: { type: 'string', example: 'John' },
+                last_name: { type: 'string', example: 'Doe' },
+                email: { type: 'string', example: 'john.doe@example.com' },
+                phone_number: { type: 'string', example: '+1234567890' },
+                is_admin: { type: 'boolean', example: false },
+                is_active: { type: 'boolean', example: true },
+                created_at: { type: 'string', format: 'date-time' },
+                updated_at: { type: 'string', format: 'date-time' },
+              },
+            },
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid credentials',
+  })
   async login(
     @Correlation() correlation_id: string,
     @Body() login_user_dto: LoginUserDto,
@@ -39,12 +117,42 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Get current user profile',
+    description: 'Get the profile of the currently authenticated user',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User profile retrieved successfully',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - JWT token required',
+  })
   async me(@Correlation() correlation_id: string, @GetUser() user: any) {
     return await this.user_service.findById(correlation_id, user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Get user by ID',
+    description: 'Get user profile by user ID',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User found successfully',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - JWT token required',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'User not found',
+  })
   async findById(
     @Correlation() correlation_id: string,
     @Param('id') id: string,
