@@ -654,15 +654,21 @@
 .loans-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 2rem;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
 }
 
 .header-content h2 {
   font-size: 2rem;
   font-weight: 700;
   color: #fff;
-  margin-bottom: 0.5rem;
 }
 
 .header-content p {
@@ -877,8 +883,8 @@
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-  min-height: 450px;
-  max-height: 520px;
+  min-height: 730px;
+  max-height: 800px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -922,7 +928,7 @@
 .loan-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 2rem;
   flex-shrink: 0;
   gap: 1.5rem;
@@ -932,6 +938,11 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+}
+
+.loan-status {
+  flex-shrink: 0; /* Prevents badge from shrinking too small */
+  white-space: nowrap; /* Keep text in one line */
 }
 
 .id-label {
@@ -1053,7 +1064,6 @@
   backdrop-filter: blur(5px);
   transition: all 0.3s ease;
   flex-shrink: 0;
-  margin-bottom: 2rem;
 }
 
 .collateral-info:hover {
@@ -1219,12 +1229,6 @@
   z-index: -1;
 }
 
-.header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 2rem;
-}
 
 .header-info {
   flex: 1;
@@ -1923,12 +1927,6 @@
   z-index: -1;
 }
 
-.header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 2rem;
-}
 
 .header-info {
   flex: 1;
@@ -1974,7 +1972,7 @@
 
 .details-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px));
   gap: 2rem;
   margin-top: 2rem;
 }
