@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Loan, LoanStatus } from './entities/loan.entity';
@@ -22,6 +22,12 @@ export class LoanService {
   async create(correlation_id: string, createLoanDto: CreateLoanDto) {
     this.logger.setContext(this.constructor.name + '/create');
     this.logger.debug(correlation_id, 'Starting loan creation process');
+
+    // Business logic validation for collateral amount
+    this.validateCollateralAmount(
+      createLoanDto.amount,
+      createLoanDto.collateral_amount,
+    );
 
     const loan_id = this.generateId();
     this.logger.debug(correlation_id, `Generated loan ID: ${loan_id}`);
@@ -110,6 +116,25 @@ export class LoanService {
     this.logger.setContext(this.constructor.name + '/update');
     this.logger.debug(correlation_id, `Updating loan ID: ${loan_id}`);
 
+    // Business logic validation for collateral amount if both amount and collateral_amount are provided
+    if (updateLoanDto.amount && updateLoanDto.collateral_amount) {
+      this.validateCollateralAmount(
+        updateLoanDto.amount,
+        updateLoanDto.collateral_amount,
+      );
+    } else if (updateLoanDto.collateral_amount) {
+      // If only collateral_amount is being updated, fetch current loan amount
+      const currentLoan = await this.loanRepository.findOne({
+        where: { loan_id },
+      });
+      if (currentLoan) {
+        this.validateCollateralAmount(
+          currentLoan.amount,
+          updateLoanDto.collateral_amount,
+        );
+      }
+    }
+
     await this.loanRepository.update(loan_id, updateLoanDto);
     this.logger.debug(correlation_id, `Loan updated successfully: ${loan_id}`);
 
@@ -155,5 +180,27 @@ export class LoanService {
       message: 'Loan deleted successfully',
       data: null,
     };
+  }
+
+  /**
+   * Validates collateral amount against loan amount
+   * @param loanAmount - The principal loan amount
+   * @param collateralAmount - The collateral amount
+   * @throws HttpException if validation fails
+   */
+  private validateCollateralAmount(
+    loanAmount: number,
+    collateralAmount: number,
+  ): void {
+    // Collateral must be less than loan amount
+    if (collateralAmount >= loanAmount) {
+      throw new HttpException(
+        {
+          message: 'Collateral amount must be less than loan amount',
+          data: null,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 }
