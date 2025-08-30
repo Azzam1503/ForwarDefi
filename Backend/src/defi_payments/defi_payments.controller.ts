@@ -5,13 +5,13 @@ import {
   Body,
   Param,
   Query,
-  Logger,
   HttpException,
   HttpStatus,
   ValidationPipe,
   UsePipes,
 } from '@nestjs/common';
 import { DefiPaymentsService } from './defi_payments.service';
+import { CustomLogger } from 'src/core/logger/logger.service';
 import {
   CreateOrderDto,
   RepayInstallmentDto,
@@ -21,26 +21,32 @@ import {
   WithdrawLiquidityDto,
   SetTierDto,
 } from './dto/create-order.dto';
+import { Correlation } from 'src/core/correlation/correlation.decorator';
 
 @Controller('DefiPaymentsController')
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 export class DefiPaymentsController {
-  private readonly logger = new Logger(DefiPaymentsController.name);
-
-  constructor(private readonly defi_payment_service: DefiPaymentsService) {}
-
+  constructor(
+    private readonly defi_payment_service: DefiPaymentsService,
+    private readonly logger: CustomLogger,
+  ) {}
   @Get('token/balance/:address')
-  async getTokenBalance(@Param('address') address: string) {
-    return this.defi_payment_service.getTokenBalance(address);
+  async getTokenBalance(
+    @Param('address') address: string,
+    @Correlation() correlation_id: string,
+  ) {
+    return this.defi_payment_service.getTokenBalance(correlation_id, address);
   }
 
   @Get('token/allowance')
   async getTokenAllowance(
+    @Correlation() correlation_id: string,
     @Query('owner') owner: string,
     @Query('spender') spender?: string,
   ) {
     const contractAddress = spender || process.env.BNPL_CONTRACT_ADDRESS;
     return this.defi_payment_service.getTokenAllowance(
+      correlation_id,
       owner,
       contractAddress as string,
     );
@@ -52,22 +58,38 @@ export class DefiPaymentsController {
   }
 
   @Get('token/status/:address')
-  async checkUserTokenStatus(@Param('address') address: string) {
-    return this.defi_payment_service.checkUserTokenStatus(address);
+  async checkUserTokenStatus(
+    @Param('address') address: string,
+    @Correlation() correlation_id: string,
+  ) {
+    return this.defi_payment_service.checkUserTokenStatus(
+      correlation_id,
+      address,
+    );
   }
 
   @Post('token/mint')
-  async mintTokens(@Body('to') to: string, @Body('amount') amount: string) {
-    const txHash = await this.defi_payment_service.mintTokens(to, amount);
+  async mintTokens(
+    @Body('to') to: string,
+    @Body('amount') amount: string,
+    @Correlation() correlation_id: string,
+  ) {
+    const txHash = await this.defi_payment_service.mintTokens(
+      correlation_id,
+      to,
+      amount,
+    );
     return { success: true, transactionHash: txHash };
   }
 
   @Post('token/approve')
   async approveTokens(
+    @Correlation() correlation_id: string,
     @Body('spender') spender: string,
     @Body('amount') amount: string,
   ) {
     const txHash = await this.defi_payment_service.approveTokens(
+      correlation_id,
       spender,
       amount,
     );
@@ -75,9 +97,19 @@ export class DefiPaymentsController {
   }
 
   @Get('orders/:id')
-  async getOrder(@Param('id') id: string) {
+  async getOrder(
+    @Param('id') id: string,
+    @Correlation() correlation_id: string,
+  ) {
+    this.logger.setContext(this.constructor.name + '/getOrder');
+    this.logger.debug(correlation_id, `Getting order: ${id}`);
+
     try {
-      const order = await this.defi_payment_service.getOrder(id);
+      const order = await this.defi_payment_service.getOrder(
+        correlation_id,
+        id,
+      );
+      this.logger.debug(correlation_id, `Order retrieved successfully: ${id}`);
       return {
         success: true,
         data: order,
@@ -98,15 +130,28 @@ export class DefiPaymentsController {
         },
       };
     } catch (error) {
-      this.logger.error(`Error getting order ${id}:`, error);
+      this.logger.error(correlation_id, `Error getting order ${id}:`, error);
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
 
   @Get('quote')
-  async getQuote(@Query() dto: QuoteDto) {
+  async getQuote(
+    @Query() dto: QuoteDto,
+    @Correlation() correlation_id: string,
+  ) {
+    this.logger.setContext(this.constructor.name + '/getQuote');
+    this.logger.debug(correlation_id, `Getting quote for buyer: ${dto.buyer}`);
+
     try {
-      const quote = await this.defi_payment_service.getQuote(dto);
+      const quote = await this.defi_payment_service.getQuote(
+        correlation_id,
+        dto,
+      );
+      this.logger.debug(
+        correlation_id,
+        `Quote retrieved successfully for buyer: ${dto.buyer}`,
+      );
       return {
         success: true,
         data: quote,
@@ -121,15 +166,31 @@ export class DefiPaymentsController {
         },
       };
     } catch (error) {
-      this.logger.error('Error getting quote:', error);
+      this.logger.error(correlation_id, 'Error getting quote:', error);
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
 
   @Get('credit-score/:address')
-  async getCreditScore(@Param('address') address: string) {
+  async getCreditScore(
+    @Param('address') address: string,
+    @Correlation() correlation_id: string,
+  ) {
+    this.logger.setContext(this.constructor.name + '/getCreditScore');
+    this.logger.debug(
+      correlation_id,
+      `Getting credit score for address: ${address}`,
+    );
+
     try {
-      const score = await this.defi_payment_service.getCreditScore(address);
+      const score = await this.defi_payment_service.getCreditScore(
+        correlation_id,
+        address,
+      );
+      this.logger.debug(
+        correlation_id,
+        `Credit score retrieved successfully for address: ${address}`,
+      );
       return {
         success: true,
         data: {
@@ -138,15 +199,27 @@ export class DefiPaymentsController {
         },
       };
     } catch (error) {
-      this.logger.error(`Error getting credit score for ${address}:`, error);
+      this.logger.error(
+        correlation_id,
+        `Error getting credit score for ${address}:`,
+        error,
+      );
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
 
   @Get('liquidity')
-  async getAvailableLiquidity() {
+  async getAvailableLiquidity(@Correlation() correlation_id: string) {
+    this.logger.setContext(this.constructor.name + '/getAvailableLiquidity');
+    this.logger.debug(correlation_id, 'Getting available liquidity');
+
     try {
-      const liquidity = await this.defi_payment_service.getAvailableLiquidity();
+      const liquidity =
+        await this.defi_payment_service.getAvailableLiquidity(correlation_id);
+      this.logger.debug(
+        correlation_id,
+        `Available liquidity retrieved: ${liquidity}`,
+      );
       return {
         success: true,
         data: {
@@ -155,15 +228,28 @@ export class DefiPaymentsController {
         },
       };
     } catch (error) {
-      this.logger.error('Error getting liquidity:', error);
+      this.logger.error(correlation_id, 'Error getting liquidity:', error);
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
   @Get('orders/:id/total-due')
-  async getTotalDue(@Param('id') id: string) {
+  async getTotalDue(
+    @Param('id') id: string,
+    @Correlation() correlation_id: string,
+  ) {
+    this.logger.setContext(this.constructor.name + '/getTotalDue');
+    this.logger.debug(correlation_id, `Getting total due for order: ${id}`);
+
     try {
-      const due = await this.defi_payment_service.getTotalDue(id);
+      const due = await this.defi_payment_service.getTotalDue(
+        correlation_id,
+        id,
+      );
+      this.logger.debug(
+        correlation_id,
+        `Total due retrieved for order ${id}: ${due}`,
+      );
       return {
         success: true,
         data: {
@@ -173,16 +259,35 @@ export class DefiPaymentsController {
         },
       };
     } catch (error) {
-      this.logger.error(`Error getting total due for order ${id}:`, error);
+      this.logger.error(
+        correlation_id,
+        `Error getting total due for order ${id}:`,
+        error,
+      );
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
 
   @Get('orders/:id/installment')
-  async getNominalInstallment(@Param('id') id: string) {
+  async getNominalInstallment(
+    @Param('id') id: string,
+    @Correlation() correlation_id: string,
+  ) {
+    this.logger.setContext(this.constructor.name + '/getNominalInstallment');
+    this.logger.debug(
+      correlation_id,
+      `Getting nominal installment for order: ${id}`,
+    );
+
     try {
-      const installment =
-        await this.defi_payment_service.getNominalInstallment(id);
+      const installment = await this.defi_payment_service.getNominalInstallment(
+        correlation_id,
+        id,
+      );
+      this.logger.debug(
+        correlation_id,
+        `Nominal installment retrieved for order ${id}`,
+      );
       return {
         success: true,
         data: installment,
@@ -202,6 +307,7 @@ export class DefiPaymentsController {
       };
     } catch (error) {
       this.logger.error(
+        correlation_id,
         `Error getting nominal installment for order ${id}:`,
         error,
       );
@@ -210,9 +316,16 @@ export class DefiPaymentsController {
   }
 
   @Get('tiers')
-  async getTiers() {
+  async getTiers(@Correlation() correlation_id: string) {
+    this.logger.setContext(this.constructor.name + '/getTiers');
+    this.logger.debug(correlation_id, 'Getting all tiers');
+
     try {
-      const tiers = await this.defi_payment_service.getTiers();
+      const tiers = await this.defi_payment_service.getTiers(correlation_id);
+      this.logger.debug(
+        correlation_id,
+        `Successfully retrieved ${tiers.length} tiers`,
+      );
       return {
         success: true,
         data: tiers.map((tier, index) => ({
@@ -227,15 +340,22 @@ export class DefiPaymentsController {
         })),
       };
     } catch (error) {
-      this.logger.error('Error getting tiers:', error);
+      this.logger.error(correlation_id, 'Error getting tiers:', error);
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
   @Get('network-info')
-  async getNetworkInfo() {
+  async getNetworkInfo(@Correlation() correlation_id: string) {
+    this.logger.setContext(this.constructor.name + '/getNetworkInfo');
+    this.logger.debug(correlation_id, 'Getting network information');
+
     try {
       const networkInfo = await this.defi_payment_service.getNetworkInfo();
+      this.logger.debug(
+        correlation_id,
+        'Network information retrieved successfully',
+      );
       return {
         success: true,
         data: networkInfo,
@@ -246,18 +366,25 @@ export class DefiPaymentsController {
         },
       };
     } catch (error) {
-      this.logger.error('Error getting network info:', error);
+      this.logger.error(correlation_id, 'Error getting network info:', error);
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
   @Get('wallet/balance')
-  async getWalletBalance() {
+  async getWalletBalance(@Correlation() correlation_id: string) {
+    this.logger.setContext(this.constructor.name + '/getWalletBalance');
+    this.logger.debug(correlation_id, 'Getting wallet balance');
+
     try {
       if (!this.defi_payment_service.isTransactionMode()) {
         throw new Error('Wallet not configured');
       }
       const balance = await this.defi_payment_service.getWalletBalance();
+      this.logger.debug(
+        correlation_id,
+        `Wallet balance retrieved: ${balance} AVAX`,
+      );
       return {
         success: true,
         data: {
@@ -266,7 +393,7 @@ export class DefiPaymentsController {
         },
       };
     } catch (error) {
-      this.logger.error('Error getting wallet balance:', error);
+      this.logger.error(correlation_id, 'Error getting wallet balance:', error);
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
@@ -277,15 +404,29 @@ export class DefiPaymentsController {
   async createOrder(
     @Body() dto: CreateOrderDto,
     @Query('buyer') buyerAddress: string,
+    @Correlation() correlation_id: string,
   ) {
+    this.logger.setContext(this.constructor.name + '/createOrder');
+    this.logger.debug(
+      correlation_id,
+      `Creating order for buyer: ${buyerAddress}`,
+    );
+
     try {
       if (!buyerAddress) {
         throw new Error('Buyer address required as query parameter');
       }
 
       const result = await this.defi_payment_service.createOrder(
+        correlation_id,
+
         dto,
+
         buyerAddress,
+      );
+      this.logger.debug(
+        correlation_id,
+        `Order created successfully: ${result.orderId}`,
       );
       return {
         success: true,
@@ -293,52 +434,105 @@ export class DefiPaymentsController {
         message: `Order ${result.orderId} created successfully`,
       };
     } catch (error) {
-      this.logger.error('Error creating order:', error);
+      this.logger.error(correlation_id, 'Error creating order:', error);
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
 
   @Post('repay-installment')
-  async repayInstallment(@Body() dto: RepayInstallmentDto) {
+  async repayInstallment(
+    @Body() dto: RepayInstallmentDto,
+    @Correlation() correlation_id: string,
+  ) {
+    this.logger.setContext(this.constructor.name + '/repayInstallment');
+    this.logger.debug(
+      correlation_id,
+      `Repaying installment for order: ${dto.orderId}`,
+    );
+
     try {
-      const txHash = await this.defi_payment_service.repayInstallment(dto);
+      const txHash = await this.defi_payment_service.repayInstallment(
+        correlation_id,
+        dto,
+      );
+      this.logger.debug(
+        correlation_id,
+        `Installment payment successful for order ${dto.orderId}`,
+      );
       return {
         success: true,
         data: { transactionHash: txHash },
         message: `Installment payment successful for order ${dto.orderId}`,
       };
     } catch (error) {
-      this.logger.error('Error repaying installment:', error);
+      this.logger.error(correlation_id, 'Error repaying installment:', error);
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
 
   @Post('repay-full/:id')
-  async repayFull(@Param('id') orderId: string) {
+  async repayFull(
+    @Param('id') orderId: string,
+    @Correlation() correlation_id: string,
+  ) {
+    this.logger.setContext(this.constructor.name + '/repayFull');
+    this.logger.debug(
+      correlation_id,
+      `Repaying full amount for order: ${orderId}`,
+    );
+
     try {
-      const txHash = await this.defi_payment_service.repayFull(orderId);
+      const txHash = await this.defi_payment_service.repayFull(
+        correlation_id,
+        orderId,
+      );
+      this.logger.debug(
+        correlation_id,
+        `Full repayment successful for order ${orderId}`,
+      );
       return {
         success: true,
         data: { transactionHash: txHash },
         message: `Full repayment successful for order ${orderId}`,
       };
     } catch (error) {
-      this.logger.error(`Error repaying full for order ${orderId}:`, error);
+      this.logger.error(
+        correlation_id,
+        `Error repaying full for order ${orderId}:`,
+        error,
+      );
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
 
   @Post('liquidate/:id')
-  async liquidateOrder(@Param('id') orderId: string) {
+  async liquidateOrder(
+    @Param('id') orderId: string,
+    @Correlation() correlation_id: string,
+  ) {
+    this.logger.setContext(this.constructor.name + '/liquidateOrder');
+    this.logger.debug(correlation_id, `Liquidating order: ${orderId}`);
+
     try {
-      const txHash = await this.defi_payment_service.liquidateOrder(orderId);
+      const txHash = await this.defi_payment_service.liquidateOrder(
+        correlation_id,
+        orderId,
+      );
+      this.logger.debug(
+        correlation_id,
+        `Order ${orderId} liquidated successfully`,
+      );
       return {
         success: true,
         data: { transactionHash: txHash },
         message: `Order ${orderId} liquidated successfully`,
       };
     } catch (error) {
-      this.logger.error(`Error liquidating order ${orderId}:`, error);
+      this.logger.error(
+        correlation_id,
+        `Error liquidating order ${orderId}:`,
+        error,
+      );
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
@@ -346,61 +540,119 @@ export class DefiPaymentsController {
   // ==================== ADMIN ENDPOINTS ====================
 
   @Post('admin/fund-liquidity')
-  async fundLiquidity(@Body() dto: FundLiquidityDto) {
+  async fundLiquidity(
+    @Body() dto: FundLiquidityDto,
+    @Correlation() correlation_id: string,
+  ) {
+    this.logger.setContext(this.constructor.name + '/fundLiquidity');
+    this.logger.debug(correlation_id, `Funding liquidity: ${dto.amount}`);
+
     try {
-      const txHash = await this.defi_payment_service.fundLiquidity(dto);
+      const txHash = await this.defi_payment_service.fundLiquidity(
+        correlation_id,
+        dto,
+      );
+      this.logger.debug(
+        correlation_id,
+        `Liquidity funded successfully: ${dto.amount}`,
+      );
       return {
         success: true,
         data: { transactionHash: txHash },
         message: `Liquidity funded: ${this.defi_payment_service.formatTokenAmount(dto.amount)} USDC`,
       };
     } catch (error) {
-      this.logger.error('Error funding liquidity:', error);
+      this.logger.error(correlation_id, 'Error funding liquidity:', error);
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
 
   @Post('admin/withdraw-liquidity')
-  async withdrawLiquidity(@Body() dto: WithdrawLiquidityDto) {
+  async withdrawLiquidity(
+    @Body() dto: WithdrawLiquidityDto,
+    @Correlation() correlation_id: string,
+  ) {
+    this.logger.setContext(this.constructor.name + '/withdrawLiquidity');
+    this.logger.debug(
+      correlation_id,
+      `Withdrawing liquidity: ${dto.amount} to ${dto.to}`,
+    );
+
     try {
-      const txHash = await this.defi_payment_service.withdrawLiquidity(dto);
+      const txHash = await this.defi_payment_service.withdrawLiquidity(
+        correlation_id,
+        dto,
+      );
+      this.logger.debug(
+        correlation_id,
+        `Liquidity withdrawn successfully: ${dto.amount} to ${dto.to}`,
+      );
       return {
         success: true,
         data: { transactionHash: txHash },
         message: `Liquidity withdrawn: ${this.defi_payment_service.formatTokenAmount(dto.amount)} USDC to ${dto.to}`,
       };
     } catch (error) {
-      this.logger.error('Error withdrawing liquidity:', error);
+      this.logger.error(correlation_id, 'Error withdrawing liquidity:', error);
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
 
   @Post('admin/set-credit-score')
-  async setCreditScore(@Body() dto: SetCreditScoreDto) {
+  async setCreditScore(
+    @Body() dto: SetCreditScoreDto,
+    @Correlation() correlation_id: string,
+  ) {
+    this.logger.setContext(this.constructor.name + '/setCreditScore');
+    this.logger.debug(
+      correlation_id,
+      `Setting credit score for ${dto.address}: ${dto.score}`,
+    );
+
     try {
-      const txHash = await this.defi_payment_service.setCreditScore(dto);
+      const txHash = await this.defi_payment_service.setCreditScore(
+        correlation_id,
+        dto,
+      );
+      this.logger.debug(
+        correlation_id,
+        `Credit score set successfully for ${dto.address}: ${dto.score}`,
+      );
       return {
         success: true,
         data: { transactionHash: txHash },
         message: `Credit score set for ${dto.address}: ${dto.score}`,
       };
     } catch (error) {
-      this.logger.error('Error setting credit score:', error);
+      this.logger.error(correlation_id, 'Error setting credit score:', error);
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
 
   @Post('admin/set-tier')
-  async setTier(@Body() dto: SetTierDto) {
+  async setTier(
+    @Body() dto: SetTierDto,
+    @Correlation() correlation_id: string,
+  ) {
+    this.logger.setContext(this.constructor.name + '/setTier');
+    this.logger.debug(
+      correlation_id,
+      `Setting tier ${dto.idx} with parameters: minScore=${dto.minScore}, collateralBps=${dto.collateralBps}, feeBps=${dto.feeBps}, maxLoan=${dto.maxLoan}`,
+    );
+
     try {
-      const txHash = await this.defi_payment_service.setTier(dto);
+      const txHash = await this.defi_payment_service.setTier(
+        correlation_id,
+        dto,
+      );
+      this.logger.debug(correlation_id, `Tier ${dto.idx} updated successfully`);
       return {
         success: true,
         data: { transactionHash: txHash },
         message: `Tier ${dto.idx} updated successfully`,
       };
     } catch (error) {
-      this.logger.error('Error setting tier:', error);
+      this.logger.error(correlation_id, 'Error setting tier:', error);
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
@@ -409,10 +661,16 @@ export class DefiPaymentsController {
 
   @Get('health')
   async healthCheck() {
+    const correlation_id = 'health-check';
+    this.logger.setContext(this.constructor.name + '/healthCheck');
+    this.logger.debug(correlation_id, 'Performing health check');
+
     try {
       const networkInfo = await this.defi_payment_service.getNetworkInfo();
-      const liquidity = await this.defi_payment_service.getAvailableLiquidity();
+      const liquidity =
+        await this.defi_payment_service.getAvailableLiquidity(correlation_id);
 
+      this.logger.debug(correlation_id, 'Health check completed successfully');
       return {
         success: true,
         data: {
@@ -427,7 +685,7 @@ export class DefiPaymentsController {
         },
       };
     } catch (error) {
-      this.logger.error('Health check failed:', error);
+      this.logger.error(correlation_id, 'Health check failed:', error);
       throw new HttpException(
         'Service unhealthy',
         HttpStatus.SERVICE_UNAVAILABLE,

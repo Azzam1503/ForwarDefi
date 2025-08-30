@@ -11,7 +11,9 @@ import { AvalancheService } from './avalanche.service';
 import { TransactionSummaryDto } from './dto/transaction.dto';
 import { AVALANCHE_CONSTANTS } from './constants';
 import { Correlation } from 'src/core/correlation/correlation.decorator';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 
+@ApiTags('avalanche')
 @Controller('avalanche')
 export class AvalancheController {
   private readonly logger = new Logger(AvalancheController.name);
@@ -24,6 +26,33 @@ export class AvalancheController {
    */
   @Get('transactions/:walletId')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Get wallet transactions',
+    description:
+      'Fetch the last 3 months of transactions for a given wallet address on Avalanche C-Chain',
+  })
+  @ApiParam({
+    name: 'walletId',
+    description: 'Avalanche wallet address',
+    example: '0x1234567890abcdef1234567890abcdef12345678',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Transactions retrieved successfully',
+    type: TransactionSummaryDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - Invalid wallet address',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'No transactions found for the wallet',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error - API failure',
+  })
   async getTransactions(
     @Correlation() correlation_id: string,
     @Param('walletId') walletId: string,
@@ -58,6 +87,25 @@ export class AvalancheController {
    */
   @Get('health')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Health check',
+    description: 'Check the health status of the Avalanche service',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Service is healthy',
+    schema: {
+      type: 'object',
+      properties: {
+        status: { type: 'string', example: 'healthy' },
+        timestamp: {
+          type: 'string',
+          format: 'date-time',
+          example: '2024-04-15T10:30:00.000Z',
+        },
+      },
+    },
+  })
   async healthCheck(
     @Correlation() correlation_id: string,
   ): Promise<{ status: string; timestamp: string }> {
