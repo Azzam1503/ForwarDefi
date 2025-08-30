@@ -5,10 +5,12 @@ import { AuthProvider } from './contexts/AuthContext';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';
 import Profile from './components/Profile';
+import Loans from './components/Loans/Loans';
 import LoadingSpinner from './components/LoadingSpinner';
 import PageTransition from './components/PageTransition';
 import "@rainbow-me/rainbowkit/styles.css";
 import "./styles/global.css";
+import "./styles/loans.css";
 
 // Page wrapper for transitions
 const PageWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -35,6 +37,7 @@ const PageWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <Routes location={displayLocation}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/loans" element={<Loans />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </PageTransition>

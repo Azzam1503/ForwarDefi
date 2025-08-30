@@ -79,9 +79,9 @@ body {
 .main-content {
   flex: 1;
   padding: 0;
-  max-width: 1400px;
+  max-width: 90%;
   margin: 0 auto;
-  width: 100%;
+  width: 90%;
   position: relative;
   z-index: 1;
 }
@@ -97,7 +97,7 @@ body {
 }
 
 .header-content {
-  max-width: 1200px;
+  max-width: 100%;
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
@@ -2400,6 +2400,7 @@ body {
   border-radius: 20px;
   font-weight: 600;
   font-size: 0.9rem;
+  width: fit-content;
 }
 
 .status-badge.active {

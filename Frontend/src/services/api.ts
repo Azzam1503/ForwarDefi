@@ -245,22 +245,144 @@ export const authApi = {
   },
 };
 
-// Loan API functions (for future use)
+// Loan API functions
+import * as LoanTypes from '../types/loan';
+
 export const loanApi = {
-  createLoan: async (loanData: any) => {
-    return apiClient.post('/loans', loanData);
+  createLoan: async (loanData: LoanTypes.CreateLoanRequest): Promise<LoanTypes.LoanApiResponse> => {
+    if (API_CONFIG.ENABLE_LOGGING) {
+      console.log(`💰 [LOAN] Creating new loan for user: ${loanData.user_id}`, {
+        amount: loanData.amount,
+        interest_rate: loanData.interest_rate,
+        collateral_amount: loanData.collateral_amount,
+      });
+    }
+
+    try {
+      const response = await apiClient.post<LoanTypes.LoanApiResponse>(API_CONFIG.ENDPOINTS.LOANS.CREATE, loanData);
+      if (API_CONFIG.ENABLE_LOGGING) {
+        console.log(`✅ [LOAN] Loan created successfully:`, response.data);
+      }
+      return response;
+    } catch (error) {
+      if (API_CONFIG.ENABLE_LOGGING) {
+        console.error(`❌ [LOAN] Loan creation failed:`, error);
+      }
+      throw error;
+    }
   },
 
-  getUserLoans: async (userId: string) => {
-    return apiClient.get(`/loans/user/${userId}`);
+  getUserLoans: async (userId: string): Promise<LoanTypes.LoansApiResponse> => {
+    if (API_CONFIG.ENABLE_LOGGING) {
+      console.log(`📋 [LOAN] Fetching loans for user: ${userId}`);
+    }
+
+    try {
+      const response = await apiClient.get<LoanTypes.LoansApiResponse>(API_CONFIG.ENDPOINTS.LOANS.BY_USER(userId));
+      if (API_CONFIG.ENABLE_LOGGING) {
+        console.log(`✅ [LOAN] Found ${response.data.length} loans for user: ${userId}`);
+      }
+      return response;
+    } catch (error) {
+      if (API_CONFIG.ENABLE_LOGGING) {
+        console.error(`❌ [LOAN] Failed to fetch user loans:`, error);
+      }
+      throw error;
+    }
   },
 
-  getAllLoans: async () => {
-    return apiClient.get('/loans');
+  getAllLoans: async (): Promise<LoanTypes.LoansApiResponse> => {
+    if (API_CONFIG.ENABLE_LOGGING) {
+      console.log(`📋 [LOAN] Fetching all loans`);
+    }
+
+    try {
+      const response = await apiClient.get<LoanTypes.LoansApiResponse>(API_CONFIG.ENDPOINTS.LOANS.ALL);
+      if (API_CONFIG.ENABLE_LOGGING) {
+        console.log(`✅ [LOAN] Found ${response.data.length} total loans`);
+      }
+      return response;
+    } catch (error) {
+      if (API_CONFIG.ENABLE_LOGGING) {
+        console.error(`❌ [LOAN] Failed to fetch all loans:`, error);
+      }
+      throw error;
+    }
   },
 
-  updateLoanStatus: async (loanId: string, status: string) => {
-    return apiClient.patch(`/loans/${loanId}/status`, { status });
+  getLoanById: async (loanId: string): Promise<LoanTypes.LoanApiResponse> => {
+    if (API_CONFIG.ENABLE_LOGGING) {
+      console.log(`🔍 [LOAN] Fetching loan by ID: ${loanId}`);
+    }
+
+    try {
+      const response = await apiClient.get<LoanTypes.LoanApiResponse>(API_CONFIG.ENDPOINTS.LOANS.BY_ID(loanId));
+      if (API_CONFIG.ENABLE_LOGGING) {
+        console.log(`✅ [LOAN] Loan found:`, response.data);
+      }
+      return response;
+    } catch (error) {
+      if (API_CONFIG.ENABLE_LOGGING) {
+        console.error(`❌ [LOAN] Failed to fetch loan by ID:`, error);
+      }
+      throw error;
+    }
+  },
+
+  updateLoan: async (loanId: string, updateData: LoanTypes.UpdateLoanRequest): Promise<LoanTypes.LoanApiResponse> => {
+    if (API_CONFIG.ENABLE_LOGGING) {
+      console.log(`📝 [LOAN] Updating loan: ${loanId}`, updateData);
+    }
+
+    try {
+      const response = await apiClient.patch<LoanTypes.LoanApiResponse>(API_CONFIG.ENDPOINTS.LOANS.BY_ID(loanId), updateData);
+      if (API_CONFIG.ENABLE_LOGGING) {
+        console.log(`✅ [LOAN] Loan updated successfully:`, response.data);
+      }
+      return response;
+    } catch (error) {
+      if (API_CONFIG.ENABLE_LOGGING) {
+        console.error(`❌ [LOAN] Failed to update loan:`, error);
+      }
+      throw error;
+    }
+  },
+
+  updateLoanStatus: async (loanId: string, status: LoanTypes.LoanStatus): Promise<LoanTypes.LoanApiResponse> => {
+    if (API_CONFIG.ENABLE_LOGGING) {
+      console.log(`🔄 [LOAN] Updating loan status to ${status} for loan: ${loanId}`);
+    }
+
+    try {
+      const response = await apiClient.patch<LoanTypes.LoanApiResponse>(API_CONFIG.ENDPOINTS.LOANS.UPDATE_STATUS(loanId), { status });
+      if (API_CONFIG.ENABLE_LOGGING) {
+        console.log(`✅ [LOAN] Loan status updated successfully:`, response.data);
+      }
+      return response;
+    } catch (error) {
+      if (API_CONFIG.ENABLE_LOGGING) {
+        console.error(`❌ [LOAN] Failed to update loan status:`, error);
+      }
+      throw error;
+    }
+  },
+
+  deleteLoan: async (loanId: string): Promise<void> => {
+    if (API_CONFIG.ENABLE_LOGGING) {
+      console.log(`🗑️ [LOAN] Deleting loan: ${loanId}`);
+    }
+
+    try {
+      await apiClient.delete(API_CONFIG.ENDPOINTS.LOANS.BY_ID(loanId));
+      if (API_CONFIG.ENABLE_LOGGING) {
+        console.log(`✅ [LOAN] Loan deleted successfully: ${loanId}`);
+      }
+    } catch (error) {
+      if (API_CONFIG.ENABLE_LOGGING) {
+        console.error(`❌ [LOAN] Failed to delete loan:`, error);
+      }
+      throw error;
+    }
   },
 };
 
@@ -296,5 +418,6 @@ export const repaymentApi = {
 
 // Re-export interfaces to ensure they're available
 export type { ApiError, User };
+export { LoanTypes };
 
 export default apiClient;
