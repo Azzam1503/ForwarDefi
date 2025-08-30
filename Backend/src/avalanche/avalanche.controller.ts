@@ -39,7 +39,32 @@ export class AvalancheController {
   @ApiResponse({
     status: 200,
     description: 'Transactions retrieved successfully',
-    type: TransactionSummaryDto,
+    schema: {
+      type: 'object',
+      properties: {
+        message: {
+          type: 'string',
+          example: 'Wallet transactions retrieved successfully',
+        },
+        data: {
+          type: 'object',
+          properties: {
+            walletAddress: {
+              type: 'string',
+              example: '0x1234567890abcdef1234567890abcdef12345678',
+            },
+            totalTransactions: { type: 'number', example: 25 },
+            dateRange: { type: 'string', example: '2024-01-15 to 2024-04-15' },
+            totalValue: { type: 'number', example: 1250.75 },
+            currency: { type: 'string', example: 'AVAX' },
+            transactions: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/AvalancheTransactionDto' },
+            },
+          },
+        },
+      },
+    },
   })
   @ApiResponse({
     status: 400,
@@ -56,13 +81,13 @@ export class AvalancheController {
   async getTransactions(
     @Correlation() correlation_id: string,
     @Param('walletId') walletId: string,
-  ): Promise<TransactionSummaryDto> {
+  ) {
     this.logger.log(`Received request for transactions of wallet: ${walletId}`);
 
     try {
       const result = await this.avalancheService.getTransactions(walletId);
       this.logger.log(
-        `Successfully retrieved ${result.totalTransactions} transactions for wallet: ${walletId}`,
+        `Successfully retrieved ${result.data.totalTransactions} transactions for wallet: ${walletId}`,
       );
       return result;
     } catch (error) {
@@ -97,18 +122,22 @@ export class AvalancheController {
     schema: {
       type: 'object',
       properties: {
-        status: { type: 'string', example: 'healthy' },
-        timestamp: {
-          type: 'string',
-          format: 'date-time',
-          example: '2024-04-15T10:30:00.000Z',
+        message: { type: 'string', example: 'Avalanche service is healthy' },
+        data: {
+          type: 'object',
+          properties: {
+            status: { type: 'string', example: 'healthy' },
+            timestamp: {
+              type: 'string',
+              format: 'date-time',
+              example: '2024-04-15T10:30:00.000Z',
+            },
+          },
         },
       },
     },
   })
-  async healthCheck(
-    @Correlation() correlation_id: string,
-  ): Promise<{ status: string; timestamp: string }> {
+  async healthCheck(@Correlation() correlation_id: string) {
     return await this.avalancheService.healthCheck();
   }
 }
