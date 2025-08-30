@@ -1,0 +1,18 @@
+{
+  "network": "fuji",
+  "chainId": 43113,
+  "deployer": "0x585bEae769cDEdA8c76A7906Ec3B943a6dc5ace2",
+  "contracts": {
+    "MockUSDC": "0x2aB9ee08AE59f9301A7C7e14B037F4065A90729a",
+    "BNPLInstallmentsProrated": "0x9131Fe6cCe638632cE8cA802b062aB4FDf457999"
+  },
+  "parameters": {
+    "treasury": "0x585bEae769cDEdA8c76A7906Ec3B943a6dc5ace2",
+    "maxPurchasePerOrder": "10000000000",
+    "repayScoreIncrease": "50",
+    "liquidateScoreDecrease": "100",
+    "earlyRepayDiscountBps": "2000",
+    "minInstallmentAmountBps": "5000"
+  },
+  "deployedAt": "2025-08-30T17:40:08.053Z"
+}
