@@ -31,6 +31,7 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(DefiPaymentsService.name);
   private provider: Provider;
   private contract: Contract;
+  private tokenContract: Contract;
   private wallet: Wallet;
   private eventListeners: Array<() => void> = [];
 
@@ -65,6 +66,26 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
     'event CreditScoreUpdated(address indexed who, uint16 oldScore, uint16 newScore)',
     'event LiquidityFunded(address indexed funder, uint256 amount)',
     'event LiquidityWithdrawn(address indexed to, uint256 amount)',
+  ];
+
+  private readonly tokenABI = [
+    // ERC20 standard functions
+    'function name() external view returns (string)',
+    'function symbol() external view returns (string)',
+    'function decimals() external view returns (uint8)',
+    'function totalSupply() external view returns (uint256)',
+    'function balanceOf(address account) external view returns (uint256)',
+    'function allowance(address owner, address spender) external view returns (uint256)',
+    'function approve(address spender, uint256 amount) external returns (bool)',
+    'function transfer(address to, uint256 amount) external returns (bool)',
+    'function transferFrom(address from, address to, uint256 amount) external returns (bool)',
+
+    // MockUSDC specific functions
+    'function mint(address to, uint256 amount) external',
+
+    // Events
+    'event Transfer(address indexed from, address indexed to, uint256 value)',
+    'event Approval(address indexed owner, address indexed spender, uint256 value)',
   ];
 
   constructor(private configService: ConfigService) {}
@@ -116,10 +137,22 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
       throw new Error('BNPL_CONTRACT_ADDRESS not configured');
     }
 
+    const tokenAddress = this.configService.get<string>(
+      'TOKEN_CONTRACT_ADDRESS',
+    );
+    if (!tokenAddress) {
+      throw new Error('TOKEN_CONTRACT_ADDRESS not configured');
+    }
+
     const signer = this.wallet || this.provider;
     this.contract = new ethers.Contract(
       contractAddress,
       this.contractABI,
+      signer,
+    );
+    this.tokenContract = new ethers.Contract(
+      tokenAddress,
+      this.tokenABI,
       signer,
     );
 
@@ -127,10 +160,147 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
     try {
       await this.contract.getTiersCount();
       this.logger.log(`BNPL contract initialized at ${contractAddress}`);
+      await this.tokenContract.name();
+      this.logger.log(`Token contract initialized at ${tokenAddress}`);
     } catch (error) {
       throw new Error(
         `Failed to connect to contract at ${contractAddress}: ${error?.message}`,
       );
+    }
+  }
+
+  // ==================== TOKEN FUNCTIONS ====================
+
+  async getTokenBalance(
+    address: string,
+  ): Promise<{ balance: string; formatted: string }> {
+    try {
+      const balance = await this.tokenContract.balanceOf(address);
+      return {
+        balance: balance.toString(),
+        formatted: this.formatTokenAmount(balance.toString()),
+      };
+    } catch (error) {
+      this.logger.error(`Failed to get token balance for ${address}:`, error);
+      throw new Error(`Failed to get token balance: ${error.message}`);
+    }
+  }
+
+  async getTokenAllowance(
+    owner: string,
+    spender: string,
+  ): Promise<{ allowance: string; formatted: string }> {
+    try {
+      const allowance = await this.tokenContract.allowance(owner, spender);
+      return {
+        allowance: allowance.toString(),
+        formatted: this.formatTokenAmount(allowance.toString()),
+      };
+    } catch (error) {
+      this.logger.error(
+        `Failed to get allowance for ${owner} -> ${spender}:`,
+        error,
+      );
+      throw new Error(`Failed to get allowance: ${error.message}`);
+    }
+  }
+
+  async getTokenInfo(): Promise<{
+    name: string;
+    symbol: string;
+    decimals: number;
+    totalSupply: string;
+  }> {
+    try {
+      const [name, symbol, decimals, totalSupply] = await Promise.all([
+        this.tokenContract.name(),
+        this.tokenContract.symbol(),
+        this.tokenContract.decimals(),
+        this.tokenContract.totalSupply(),
+      ]);
+
+      return {
+        name,
+        symbol,
+        decimals,
+        totalSupply: totalSupply.toString(),
+      };
+    } catch (error) {
+      this.logger.error('Failed to get token info:', error);
+      throw new Error(`Failed to get token info: ${error.message}`);
+    }
+  }
+
+  async mintTokens(to: string, amount: string): Promise<string> {
+    if (!this.wallet) {
+      throw new Error('Wallet not configured for transactions');
+    }
+
+    try {
+      const tx = await this.tokenContract.mint(to, amount);
+      await tx.wait();
+
+      this.logger.log(
+        `Tokens minted to ${to}: ${this.formatTokenAmount(amount)}, tx: ${tx.hash}`,
+      );
+      return tx.hash;
+    } catch (error) {
+      this.logger.error(`Failed to mint tokens to ${to}:`, error);
+      throw new Error(`Failed to mint tokens: ${error.message}`);
+    }
+  }
+
+  async approveTokens(spender: string, amount: string): Promise<string> {
+    if (!this.wallet) {
+      throw new Error('Wallet not configured for transactions');
+    }
+
+    try {
+      const tx = await this.tokenContract.approve(spender, amount);
+      await tx.wait();
+
+      this.logger.log(
+        `Tokens approved for ${spender}: ${this.formatTokenAmount(amount)}, tx: ${tx.hash}`,
+      );
+      return tx.hash;
+    } catch (error) {
+      this.logger.error(`Failed to approve tokens for ${spender}:`, error);
+      throw new Error(`Failed to approve tokens: ${error.message}`);
+    }
+  }
+
+  // Helper function to check if user has sufficient balance and allowance
+  async checkUserTokenStatus(userAddress: string): Promise<{
+    balance: string;
+    allowance: string;
+    hasBalance: boolean;
+    hasAllowance: boolean;
+    formattedBalance: string;
+    formattedAllowance: string;
+  }> {
+    try {
+      const contractAddress = this.configService.get<string>(
+        'BNPL_CONTRACT_ADDRESS',
+      ) as string;
+      const [balanceResult, allowanceResult] = await Promise.all([
+        this.getTokenBalance(userAddress),
+        this.getTokenAllowance(userAddress, contractAddress),
+      ]);
+
+      return {
+        balance: balanceResult.balance,
+        allowance: allowanceResult.allowance,
+        hasBalance: BigInt(balanceResult.balance) > 0n,
+        hasAllowance: BigInt(allowanceResult.allowance) > 0n,
+        formattedBalance: balanceResult.formatted,
+        formattedAllowance: allowanceResult.formatted,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Failed to check token status for ${userAddress}:`,
+        error,
+      );
+      throw new Error(`Failed to check token status: ${error.message}`);
     }
   }
 
