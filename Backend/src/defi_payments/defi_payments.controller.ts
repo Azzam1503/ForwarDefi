@@ -21,6 +21,7 @@ import {
   WithdrawLiquidityDto,
   SetTierDto,
 } from './dto/create-order.dto';
+import { Correlation } from 'src/core/correlation/correlation.decorator';
 
 @Controller('DefiPaymentsController')
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
@@ -31,8 +32,10 @@ export class DefiPaymentsController {
   ) {}
 
   @Get('orders/:id')
-  async getOrder(@Param('id') id: string) {
-    const correlation_id = `get-order-${id}`;
+  async getOrder(
+    @Param('id') id: string,
+    @Correlation() correlation_id: string,
+  ) {
     this.logger.setContext(this.constructor.name + '/getOrder');
     this.logger.debug(correlation_id, `Getting order: ${id}`);
 
@@ -65,8 +68,10 @@ export class DefiPaymentsController {
   }
 
   @Get('quote')
-  async getQuote(@Query() dto: QuoteDto) {
-    const correlation_id = `get-quote-${dto.buyer}`;
+  async getQuote(
+    @Query() dto: QuoteDto,
+    @Correlation() correlation_id: string,
+  ) {
     this.logger.setContext(this.constructor.name + '/getQuote');
     this.logger.debug(correlation_id, `Getting quote for buyer: ${dto.buyer}`);
 
@@ -96,8 +101,10 @@ export class DefiPaymentsController {
   }
 
   @Get('credit-score/:address')
-  async getCreditScore(@Param('address') address: string) {
-    const correlation_id = `get-credit-score-${address}`;
+  async getCreditScore(
+    @Param('address') address: string,
+    @Correlation() correlation_id: string,
+  ) {
     this.logger.setContext(this.constructor.name + '/getCreditScore');
     this.logger.debug(
       correlation_id,
@@ -128,8 +135,7 @@ export class DefiPaymentsController {
   }
 
   @Get('liquidity')
-  async getAvailableLiquidity() {
-    const correlation_id = 'get-liquidity';
+  async getAvailableLiquidity(@Correlation() correlation_id: string) {
     this.logger.setContext(this.constructor.name + '/getAvailableLiquidity');
     this.logger.debug(correlation_id, 'Getting available liquidity');
 
@@ -153,8 +159,10 @@ export class DefiPaymentsController {
   }
 
   @Get('orders/:id/total-due')
-  async getTotalDue(@Param('id') id: string) {
-    const correlation_id = `get-total-due-${id}`;
+  async getTotalDue(
+    @Param('id') id: string,
+    @Correlation() correlation_id: string,
+  ) {
     this.logger.setContext(this.constructor.name + '/getTotalDue');
     this.logger.debug(correlation_id, `Getting total due for order: ${id}`);
 
@@ -183,8 +191,10 @@ export class DefiPaymentsController {
   }
 
   @Get('orders/:id/installment')
-  async getNominalInstallment(@Param('id') id: string) {
-    const correlation_id = `get-installment-${id}`;
+  async getNominalInstallment(
+    @Param('id') id: string,
+    @Correlation() correlation_id: string,
+  ) {
     this.logger.setContext(this.constructor.name + '/getNominalInstallment');
     this.logger.debug(
       correlation_id,
@@ -226,8 +236,7 @@ export class DefiPaymentsController {
   }
 
   @Get('tiers')
-  async getTiers() {
-    const correlation_id = 'get-tiers';
+  async getTiers(@Correlation() correlation_id: string) {
     this.logger.setContext(this.constructor.name + '/getTiers');
     this.logger.debug(correlation_id, 'Getting all tiers');
 
@@ -257,8 +266,7 @@ export class DefiPaymentsController {
   }
 
   @Get('network-info')
-  async getNetworkInfo() {
-    const correlation_id = 'get-network-info';
+  async getNetworkInfo(@Correlation() correlation_id: string) {
     this.logger.setContext(this.constructor.name + '/getNetworkInfo');
     this.logger.debug(correlation_id, 'Getting network information');
 
@@ -284,8 +292,7 @@ export class DefiPaymentsController {
   }
 
   @Get('wallet/balance')
-  async getWalletBalance() {
-    const correlation_id = 'get-wallet-balance';
+  async getWalletBalance(@Correlation() correlation_id: string) {
     this.logger.setContext(this.constructor.name + '/getWalletBalance');
     this.logger.debug(correlation_id, 'Getting wallet balance');
 
@@ -317,8 +324,8 @@ export class DefiPaymentsController {
   async createOrder(
     @Body() dto: CreateOrderDto,
     @Query('buyer') buyerAddress: string,
+    @Correlation() correlation_id: string,
   ) {
-    const correlation_id = `create-order-${buyerAddress}`;
     this.logger.setContext(this.constructor.name + '/createOrder');
     this.logger.debug(
       correlation_id,
@@ -350,8 +357,10 @@ export class DefiPaymentsController {
   }
 
   @Post('repay-installment')
-  async repayInstallment(@Body() dto: RepayInstallmentDto) {
-    const correlation_id = `repay-installment-${dto.orderId}`;
+  async repayInstallment(
+    @Body() dto: RepayInstallmentDto,
+    @Correlation() correlation_id: string,
+  ) {
     this.logger.setContext(this.constructor.name + '/repayInstallment');
     this.logger.debug(
       correlation_id,
@@ -376,8 +385,10 @@ export class DefiPaymentsController {
   }
 
   @Post('repay-full/:id')
-  async repayFull(@Param('id') orderId: string) {
-    const correlation_id = `repay-full-${orderId}`;
+  async repayFull(
+    @Param('id') orderId: string,
+    @Correlation() correlation_id: string,
+  ) {
     this.logger.setContext(this.constructor.name + '/repayFull');
     this.logger.debug(
       correlation_id,
@@ -406,8 +417,10 @@ export class DefiPaymentsController {
   }
 
   @Post('liquidate/:id')
-  async liquidateOrder(@Param('id') orderId: string) {
-    const correlation_id = `liquidate-${orderId}`;
+  async liquidateOrder(
+    @Param('id') orderId: string,
+    @Correlation() correlation_id: string,
+  ) {
     this.logger.setContext(this.constructor.name + '/liquidateOrder');
     this.logger.debug(correlation_id, `Liquidating order: ${orderId}`);
 
@@ -435,8 +448,10 @@ export class DefiPaymentsController {
   // ==================== ADMIN ENDPOINTS ====================
 
   @Post('admin/fund-liquidity')
-  async fundLiquidity(@Body() dto: FundLiquidityDto) {
-    const correlation_id = `fund-liquidity-${dto.amount}`;
+  async fundLiquidity(
+    @Body() dto: FundLiquidityDto,
+    @Correlation() correlation_id: string,
+  ) {
     this.logger.setContext(this.constructor.name + '/fundLiquidity');
     this.logger.debug(correlation_id, `Funding liquidity: ${dto.amount}`);
 
@@ -458,8 +473,10 @@ export class DefiPaymentsController {
   }
 
   @Post('admin/withdraw-liquidity')
-  async withdrawLiquidity(@Body() dto: WithdrawLiquidityDto) {
-    const correlation_id = `withdraw-liquidity-${dto.to}`;
+  async withdrawLiquidity(
+    @Body() dto: WithdrawLiquidityDto,
+    @Correlation() correlation_id: string,
+  ) {
     this.logger.setContext(this.constructor.name + '/withdrawLiquidity');
     this.logger.debug(
       correlation_id,
@@ -484,8 +501,10 @@ export class DefiPaymentsController {
   }
 
   @Post('admin/set-credit-score')
-  async setCreditScore(@Body() dto: SetCreditScoreDto) {
-    const correlation_id = `set-credit-score-${dto.address}`;
+  async setCreditScore(
+    @Body() dto: SetCreditScoreDto,
+    @Correlation() correlation_id: string,
+  ) {
     this.logger.setContext(this.constructor.name + '/setCreditScore');
     this.logger.debug(
       correlation_id,
@@ -510,8 +529,10 @@ export class DefiPaymentsController {
   }
 
   @Post('admin/set-tier')
-  async setTier(@Body() dto: SetTierDto) {
-    const correlation_id = `set-tier-${dto.idx}`;
+  async setTier(
+    @Body() dto: SetTierDto,
+    @Correlation() correlation_id: string,
+  ) {
     this.logger.setContext(this.constructor.name + '/setTier');
     this.logger.debug(
       correlation_id,
