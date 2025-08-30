@@ -29,6 +29,50 @@ export class DefiPaymentsController {
 
   constructor(private readonly defi_payment_service: DefiPaymentsService) {}
 
+  @Get('token/balance/:address')
+  async getTokenBalance(@Param('address') address: string) {
+    return this.defi_payment_service.getTokenBalance(address);
+  }
+
+  @Get('token/allowance')
+  async getTokenAllowance(
+    @Query('owner') owner: string,
+    @Query('spender') spender?: string,
+  ) {
+    const contractAddress = spender || process.env.BNPL_CONTRACT_ADDRESS;
+    return this.defi_payment_service.getTokenAllowance(
+      owner,
+      contractAddress as string,
+    );
+  }
+
+  @Get('token/info')
+  async getTokenInfo() {
+    return this.defi_payment_service.getTokenInfo();
+  }
+
+  @Get('token/status/:address')
+  async checkUserTokenStatus(@Param('address') address: string) {
+    return this.defi_payment_service.checkUserTokenStatus(address);
+  }
+
+  @Post('token/mint')
+  async mintTokens(@Body('to') to: string, @Body('amount') amount: string) {
+    const txHash = await this.defi_payment_service.mintTokens(to, amount);
+    return { success: true, transactionHash: txHash };
+  }
+
+  @Post('token/approve')
+  async approveTokens(
+    @Body('spender') spender: string,
+    @Body('amount') amount: string,
+  ) {
+    const txHash = await this.defi_payment_service.approveTokens(
+      spender,
+      amount,
+    );
+    return { success: true, transactionHash: txHash };
+  }
 
   @Get('orders/:id')
   async getOrder(@Param('id') id: string) {
@@ -38,8 +82,12 @@ export class DefiPaymentsController {
         success: true,
         data: order,
         formatted: {
-          principal: this.defi_payment_service.formatTokenAmount(order.principal),
-          collateral: this.defi_payment_service.formatTokenAmount(order.collateral),
+          principal: this.defi_payment_service.formatTokenAmount(
+            order.principal,
+          ),
+          collateral: this.defi_payment_service.formatTokenAmount(
+            order.collateral,
+          ),
           totalFee: this.defi_payment_service.formatTokenAmount(order.totalFee),
           paidPrincipal: this.defi_payment_service.formatTokenAmount(
             order.paidPrincipal,
@@ -133,7 +181,8 @@ export class DefiPaymentsController {
   @Get('orders/:id/installment')
   async getNominalInstallment(@Param('id') id: string) {
     try {
-      const installment = await this.defi_payment_service.getNominalInstallment(id);
+      const installment =
+        await this.defi_payment_service.getNominalInstallment(id);
       return {
         success: true,
         data: installment,
@@ -141,7 +190,9 @@ export class DefiPaymentsController {
           principalPart: this.defi_payment_service.formatTokenAmount(
             installment.principalPart,
           ),
-          feePart: this.defi_payment_service.formatTokenAmount(installment.feePart),
+          feePart: this.defi_payment_service.formatTokenAmount(
+            installment.feePart,
+          ),
           total: this.defi_payment_service.formatTokenAmount(
             (
               BigInt(installment.principalPart) + BigInt(installment.feePart)
@@ -232,7 +283,10 @@ export class DefiPaymentsController {
         throw new Error('Buyer address required as query parameter');
       }
 
-      const result = await this.defi_payment_service.createOrder(dto, buyerAddress);
+      const result = await this.defi_payment_service.createOrder(
+        dto,
+        buyerAddress,
+      );
       return {
         success: true,
         data: result,
@@ -367,7 +421,8 @@ export class DefiPaymentsController {
           contractAddress: this.defi_payment_service.getContractAddress(),
           walletAddress: this.defi_payment_service.getWalletAddress(),
           transactionMode: this.defi_payment_service.isTransactionMode(),
-          availableLiquidity: this.defi_payment_service.formatTokenAmount(liquidity),
+          availableLiquidity:
+            this.defi_payment_service.formatTokenAmount(liquidity),
           timestamp: new Date().toISOString(),
         },
       };
