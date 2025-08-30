@@ -40,7 +40,10 @@ export class DefiPaymentsController {
     this.logger.debug(correlation_id, `Getting order: ${id}`);
 
     try {
-      const order = await this.defi_payment_service.getOrder(id);
+      const order = await this.defi_payment_service.getOrder(
+        correlation_id,
+        id,
+      );
       this.logger.debug(correlation_id, `Order retrieved successfully: ${id}`);
       return {
         success: true,
@@ -76,7 +79,10 @@ export class DefiPaymentsController {
     this.logger.debug(correlation_id, `Getting quote for buyer: ${dto.buyer}`);
 
     try {
-      const quote = await this.defi_payment_service.getQuote(dto);
+      const quote = await this.defi_payment_service.getQuote(
+        correlation_id,
+        dto,
+      );
       this.logger.debug(
         correlation_id,
         `Quote retrieved successfully for buyer: ${dto.buyer}`,
@@ -112,7 +118,10 @@ export class DefiPaymentsController {
     );
 
     try {
-      const score = await this.defi_payment_service.getCreditScore(address);
+      const score = await this.defi_payment_service.getCreditScore(
+        correlation_id,
+        address,
+      );
       this.logger.debug(
         correlation_id,
         `Credit score retrieved successfully for address: ${address}`,
@@ -140,7 +149,8 @@ export class DefiPaymentsController {
     this.logger.debug(correlation_id, 'Getting available liquidity');
 
     try {
-      const liquidity = await this.defi_payment_service.getAvailableLiquidity();
+      const liquidity =
+        await this.defi_payment_service.getAvailableLiquidity(correlation_id);
       this.logger.debug(
         correlation_id,
         `Available liquidity retrieved: ${liquidity}`,
@@ -167,7 +177,10 @@ export class DefiPaymentsController {
     this.logger.debug(correlation_id, `Getting total due for order: ${id}`);
 
     try {
-      const due = await this.defi_payment_service.getTotalDue(id);
+      const due = await this.defi_payment_service.getTotalDue(
+        correlation_id,
+        id,
+      );
       this.logger.debug(
         correlation_id,
         `Total due retrieved for order ${id}: ${due}`,
@@ -202,8 +215,10 @@ export class DefiPaymentsController {
     );
 
     try {
-      const installment =
-        await this.defi_payment_service.getNominalInstallment(id);
+      const installment = await this.defi_payment_service.getNominalInstallment(
+        correlation_id,
+        id,
+      );
       this.logger.debug(
         correlation_id,
         `Nominal installment retrieved for order ${id}`,
@@ -241,7 +256,7 @@ export class DefiPaymentsController {
     this.logger.debug(correlation_id, 'Getting all tiers');
 
     try {
-      const tiers = await this.defi_payment_service.getTiers();
+      const tiers = await this.defi_payment_service.getTiers(correlation_id);
       this.logger.debug(
         correlation_id,
         `Successfully retrieved ${tiers.length} tiers`,
@@ -338,6 +353,7 @@ export class DefiPaymentsController {
       }
 
       const result = await this.defi_payment_service.createOrder(
+        correlation_id,
         dto,
         buyerAddress,
       );
@@ -368,7 +384,10 @@ export class DefiPaymentsController {
     );
 
     try {
-      const txHash = await this.defi_payment_service.repayInstallment(dto);
+      const txHash = await this.defi_payment_service.repayInstallment(
+        correlation_id,
+        dto,
+      );
       this.logger.debug(
         correlation_id,
         `Installment payment successful for order ${dto.orderId}`,
@@ -396,7 +415,10 @@ export class DefiPaymentsController {
     );
 
     try {
-      const txHash = await this.defi_payment_service.repayFull(orderId);
+      const txHash = await this.defi_payment_service.repayFull(
+        correlation_id,
+        orderId,
+      );
       this.logger.debug(
         correlation_id,
         `Full repayment successful for order ${orderId}`,
@@ -425,7 +447,10 @@ export class DefiPaymentsController {
     this.logger.debug(correlation_id, `Liquidating order: ${orderId}`);
 
     try {
-      const txHash = await this.defi_payment_service.liquidateOrder(orderId);
+      const txHash = await this.defi_payment_service.liquidateOrder(
+        correlation_id,
+        orderId,
+      );
       this.logger.debug(
         correlation_id,
         `Order ${orderId} liquidated successfully`,
@@ -456,7 +481,10 @@ export class DefiPaymentsController {
     this.logger.debug(correlation_id, `Funding liquidity: ${dto.amount}`);
 
     try {
-      const txHash = await this.defi_payment_service.fundLiquidity(dto);
+      const txHash = await this.defi_payment_service.fundLiquidity(
+        correlation_id,
+        dto,
+      );
       this.logger.debug(
         correlation_id,
         `Liquidity funded successfully: ${dto.amount}`,
@@ -484,7 +512,10 @@ export class DefiPaymentsController {
     );
 
     try {
-      const txHash = await this.defi_payment_service.withdrawLiquidity(dto);
+      const txHash = await this.defi_payment_service.withdrawLiquidity(
+        correlation_id,
+        dto,
+      );
       this.logger.debug(
         correlation_id,
         `Liquidity withdrawn successfully: ${dto.amount} to ${dto.to}`,
@@ -512,7 +543,10 @@ export class DefiPaymentsController {
     );
 
     try {
-      const txHash = await this.defi_payment_service.setCreditScore(dto);
+      const txHash = await this.defi_payment_service.setCreditScore(
+        correlation_id,
+        dto,
+      );
       this.logger.debug(
         correlation_id,
         `Credit score set successfully for ${dto.address}: ${dto.score}`,
@@ -540,7 +574,10 @@ export class DefiPaymentsController {
     );
 
     try {
-      const txHash = await this.defi_payment_service.setTier(dto);
+      const txHash = await this.defi_payment_service.setTier(
+        correlation_id,
+        dto,
+      );
       this.logger.debug(correlation_id, `Tier ${dto.idx} updated successfully`);
       return {
         success: true,
@@ -563,7 +600,8 @@ export class DefiPaymentsController {
 
     try {
       const networkInfo = await this.defi_payment_service.getNetworkInfo();
-      const liquidity = await this.defi_payment_service.getAvailableLiquidity();
+      const liquidity =
+        await this.defi_payment_service.getAvailableLiquidity(correlation_id);
 
       this.logger.debug(correlation_id, 'Health check completed successfully');
       return {

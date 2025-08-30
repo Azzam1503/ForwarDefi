@@ -74,7 +74,7 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
       this.logger.debug(correlation_id, 'Starting BNPL Service initialization');
       await this.initializeProvider();
       await this.initializeContract();
-      this.setupEventListeners();
+      this.setupEventListeners(correlation_id);
       this.logger.debug(
         correlation_id,
         'BNPL Service initialized successfully',
@@ -157,8 +157,7 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
 
   // ==================== READ FUNCTIONS ====================
 
-  async getOrder(orderId: string): Promise<BNPLOrder> {
-    const correlation_id = `order-${orderId}`;
+  async getOrder(correlation_id: string, orderId: string): Promise<BNPLOrder> {
     this.logger.setContext(this.constructor.name + '/getOrder');
     this.logger.debug(correlation_id, `Fetching order: ${orderId}`);
 
@@ -194,8 +193,7 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async getQuote(dto: QuoteDto): Promise<QuoteResult> {
-    const correlation_id = `quote-${dto.buyer}`;
+  async getQuote(correlation_id: string, dto: QuoteDto): Promise<QuoteResult> {
     this.logger.setContext(this.constructor.name + '/getQuote');
     this.logger.debug(
       correlation_id,
@@ -223,8 +221,10 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async getCreditScore(address: string): Promise<number> {
-    const correlation_id = `credit-score-${address}`;
+  async getCreditScore(
+    correlation_id: string,
+    address: string,
+  ): Promise<number> {
     this.logger.setContext(this.constructor.name + '/getCreditScore');
     this.logger.debug(
       correlation_id,
@@ -248,8 +248,7 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async getAvailableLiquidity(): Promise<string> {
-    const correlation_id = 'liquidity-check';
+  async getAvailableLiquidity(correlation_id: string): Promise<string> {
     this.logger.setContext(this.constructor.name + '/getAvailableLiquidity');
     this.logger.debug(correlation_id, 'Getting available liquidity');
 
@@ -270,8 +269,7 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async getTotalDue(orderId: string): Promise<string> {
-    const correlation_id = `total-due-${orderId}`;
+  async getTotalDue(correlation_id: string, orderId: string): Promise<string> {
     this.logger.setContext(this.constructor.name + '/getTotalDue');
     this.logger.debug(
       correlation_id,
@@ -296,9 +294,9 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
   }
 
   async getNominalInstallment(
+    correlation_id: string,
     orderId: string,
   ): Promise<{ principalPart: string; feePart: string }> {
-    const correlation_id = `nominal-installment-${orderId}`;
     this.logger.setContext(this.constructor.name + '/getNominalInstallment');
     this.logger.debug(
       correlation_id,
@@ -325,8 +323,7 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async getTiers(): Promise<BNPLTier[]> {
-    const correlation_id = 'get-tiers';
+  async getTiers(correlation_id: string): Promise<BNPLTier[]> {
     this.logger.setContext(this.constructor.name + '/getTiers');
     this.logger.debug(correlation_id, 'Getting all tiers');
 
@@ -359,10 +356,10 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
   // ==================== TRANSACTION FUNCTIONS ====================
 
   async createOrder(
+    correlation_id: string,
     dto: CreateOrderDto,
     buyerAddress: string,
   ): Promise<OrderCreationResult> {
-    const correlation_id = `create-order-${buyerAddress}`;
     this.logger.setContext(this.constructor.name + '/createOrder');
     this.logger.debug(
       correlation_id,
@@ -431,8 +428,10 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async repayInstallment(dto: RepayInstallmentDto): Promise<string> {
-    const correlation_id = `repay-installment-${dto.orderId}`;
+  async repayInstallment(
+    correlation_id: string,
+    dto: RepayInstallmentDto,
+  ): Promise<string> {
     this.logger.setContext(this.constructor.name + '/repayInstallment');
     this.logger.debug(
       correlation_id,
@@ -481,8 +480,7 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async repayFull(orderId: string): Promise<string> {
-    const correlation_id = `repay-full-${orderId}`;
+  async repayFull(correlation_id: string, orderId: string): Promise<string> {
     this.logger.setContext(this.constructor.name + '/repayFull');
     this.logger.debug(
       correlation_id,
@@ -525,8 +523,10 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async liquidateOrder(orderId: string): Promise<string> {
-    const correlation_id = `liquidate-${orderId}`;
+  async liquidateOrder(
+    correlation_id: string,
+    orderId: string,
+  ): Promise<string> {
     this.logger.setContext(this.constructor.name + '/liquidateOrder');
     this.logger.debug(correlation_id, `Liquidating order: ${orderId}`);
 
@@ -568,8 +568,10 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
 
   // ==================== ADMIN FUNCTIONS ====================
 
-  async fundLiquidity(dto: FundLiquidityDto): Promise<string> {
-    const correlation_id = `fund-liquidity-${dto.amount}`;
+  async fundLiquidity(
+    correlation_id: string,
+    dto: FundLiquidityDto,
+  ): Promise<string> {
     this.logger.setContext(this.constructor.name + '/fundLiquidity');
     this.logger.debug(correlation_id, `Funding liquidity: ${dto.amount}`);
 
@@ -607,8 +609,10 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async withdrawLiquidity(dto: WithdrawLiquidityDto): Promise<string> {
-    const correlation_id = `withdraw-liquidity-${dto.to}`;
+  async withdrawLiquidity(
+    correlation_id: string,
+    dto: WithdrawLiquidityDto,
+  ): Promise<string> {
     this.logger.setContext(this.constructor.name + '/withdrawLiquidity');
     this.logger.debug(
       correlation_id,
@@ -653,8 +657,10 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async setCreditScore(dto: SetCreditScoreDto): Promise<string> {
-    const correlation_id = `set-credit-score-${dto.address}`;
+  async setCreditScore(
+    correlation_id: string,
+    dto: SetCreditScoreDto,
+  ): Promise<string> {
     this.logger.setContext(this.constructor.name + '/setCreditScore');
     this.logger.debug(
       correlation_id,
@@ -703,8 +709,7 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async setTier(dto: SetTierDto): Promise<string> {
-    const correlation_id = `set-tier-${dto.idx}`;
+  async setTier(correlation_id: string, dto: SetTierDto): Promise<string> {
     this.logger.setContext(this.constructor.name + '/setTier');
     this.logger.debug(
       correlation_id,
@@ -760,8 +765,7 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
 
   // ==================== EVENT LISTENING ====================
 
-  setupEventListeners() {
-    const correlation_id = 'event-setup';
+  setupEventListeners(correlation_id: string) {
     this.logger.setContext(this.constructor.name + '/setupEventListeners');
     this.logger.debug(correlation_id, 'Setting up event listeners');
 
