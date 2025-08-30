@@ -1,0 +1,22 @@
+{
+  "name": "bnpl-contracts",
+  "version": "1.0.0",
+  "description": "BNPL Smart Contracts for Avalanche",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:fuji": "hardhat run scripts/deploy.js --network fuji",
+    "deploy:mainnet": "hardhat run scripts/deploy.js --network avalanche",
+    "verify:fuji": "hardhat run scripts/verify.js --network fuji",
+    "fund-liquidity": "hardhat run scripts/fund-liquidity.js --network fuji",
+    "setup-demo": "hardhat run scripts/setup-demo.js --network fuji"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.19.0",
+    "dotenv": "^16.3.1"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.9.6"
+  }
+}

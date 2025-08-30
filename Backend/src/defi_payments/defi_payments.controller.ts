@@ -30,6 +30,71 @@ export class DefiPaymentsController {
     private readonly defi_payment_service: DefiPaymentsService,
     private readonly logger: CustomLogger,
   ) {}
+  @Get('token/balance/:address')
+  async getTokenBalance(
+    @Param('address') address: string,
+    @Correlation() correlation_id: string,
+  ) {
+    return this.defi_payment_service.getTokenBalance(correlation_id, address);
+  }
+
+  @Get('token/allowance')
+  async getTokenAllowance(
+    @Correlation() correlation_id: string,
+    @Query('owner') owner: string,
+    @Query('spender') spender?: string,
+  ) {
+    const contractAddress = spender || process.env.BNPL_CONTRACT_ADDRESS;
+    return this.defi_payment_service.getTokenAllowance(
+      correlation_id,
+      owner,
+      contractAddress as string,
+    );
+  }
+
+  @Get('token/info')
+  async getTokenInfo() {
+    return this.defi_payment_service.getTokenInfo();
+  }
+
+  @Get('token/status/:address')
+  async checkUserTokenStatus(
+    @Param('address') address: string,
+    @Correlation() correlation_id: string,
+  ) {
+    return this.defi_payment_service.checkUserTokenStatus(
+      correlation_id,
+      address,
+    );
+  }
+
+  @Post('token/mint')
+  async mintTokens(
+    @Body('to') to: string,
+    @Body('amount') amount: string,
+    @Correlation() correlation_id: string,
+  ) {
+    const txHash = await this.defi_payment_service.mintTokens(
+      correlation_id,
+      to,
+      amount,
+    );
+    return { success: true, transactionHash: txHash };
+  }
+
+  @Post('token/approve')
+  async approveTokens(
+    @Correlation() correlation_id: string,
+    @Body('spender') spender: string,
+    @Body('amount') amount: string,
+  ) {
+    const txHash = await this.defi_payment_service.approveTokens(
+      correlation_id,
+      spender,
+      amount,
+    );
+    return { success: true, transactionHash: txHash };
+  }
 
   @Get('orders/:id')
   async getOrder(
@@ -354,7 +419,9 @@ export class DefiPaymentsController {
 
       const result = await this.defi_payment_service.createOrder(
         correlation_id,
+
         dto,
+
         buyerAddress,
       );
       this.logger.debug(
