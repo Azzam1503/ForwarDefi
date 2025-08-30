@@ -8,32 +8,32 @@ interface SignInFormProps {
 }
 
 const SignInForm: React.FC<SignInFormProps> = ({ onSwitchToSignUp, onClose }) => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, loading, error, clearError } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setIsLoading(true);
+    console.log(`📋 [SIGNIN FORM] Form submitted for email: ${email}`);
+    
+    clearError();
 
-    if (!username || !password) {
-      setError('Please fill in all fields');
-      setIsLoading(false);
+    if (!email || !password) {
+      console.log(`⚠️ [SIGNIN FORM] Validation failed - missing email or password`);
       return;
     }
 
-    const success = await signIn(username, password);
+    console.log(`✅ [SIGNIN FORM] Form validation passed, calling signIn...`);
+    const success = await signIn(email, password);
     
     if (success) {
+      console.log(`🎉 [SIGNIN FORM] Sign in successful, closing modal`);
       onClose();
     } else {
-      setError('Invalid username or password');
+      console.log(`❌ [SIGNIN FORM] Sign in failed, modal remains open`);
     }
-    setIsLoading(false);
   };
 
   return (
@@ -46,13 +46,13 @@ const SignInForm: React.FC<SignInFormProps> = ({ onSwitchToSignUp, onClose }) =>
 
       <form onSubmit={handleSubmit} className="auth-form-content">
         <div className="form-group">
-          <label htmlFor="username">Username</label>
+          <label htmlFor="email">Email</label>
           <input
-            id="username"
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Enter your username"
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email"
             required
           />
         </div>
@@ -83,9 +83,9 @@ const SignInForm: React.FC<SignInFormProps> = ({ onSwitchToSignUp, onClose }) =>
         <button
           type="submit"
           className="auth-submit-btn"
-          disabled={isLoading}
+          disabled={loading}
         >
-          {isLoading ? 'Signing In...' : 'Sign In'}
+          {loading ? 'Signing In...' : 'Sign In'}
         </button>
       </form>
 

@@ -8,53 +8,57 @@ interface SignUpFormProps {
 }
 
 const SignUpForm: React.FC<SignUpFormProps> = ({ onSwitchToSignIn, onClose }) => {
-  const [username, setUsername] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const { signUp } = useAuth();
+  const { signUp, loading, error, clearError } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setIsLoading(true);
+    console.log(`📋 [SIGNUP FORM] Form submitted for email: ${email}`);
+    console.log(`📋 [SIGNUP FORM] User details:`, {
+      firstName,
+      lastName,
+      email,
+      phoneNumber: phoneNumber || 'Not provided',
+    });
+    
+    clearError();
 
-    if (!username || !email || !password || !confirmPassword) {
-      setError('Please fill in all fields');
-      setIsLoading(false);
+    if (!firstName || !lastName || !email || !password || !confirmPassword) {
+      console.log(`⚠️ [SIGNUP FORM] Validation failed - missing required fields`);
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      setIsLoading(false);
+      console.log(`⚠️ [SIGNUP FORM] Validation failed - passwords do not match`);
       return;
     }
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters long');
-      setIsLoading(false);
+      console.log(`⚠️ [SIGNUP FORM] Validation failed - password too short`);
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setError('Please enter a valid email address');
-      setIsLoading(false);
+      console.log(`⚠️ [SIGNUP FORM] Validation failed - invalid email format`);
       return;
     }
 
-    const success = await signUp(username, email, password);
+    console.log(`✅ [SIGNUP FORM] Form validation passed, calling signUp...`);
+    const success = await signUp(firstName, lastName, email, password, phoneNumber || undefined);
     
     if (success) {
+      console.log(`🎉 [SIGNUP FORM] Sign up successful, closing modal`);
       onClose();
     } else {
-      setError('Username or email already exists');
+      console.log(`❌ [SIGNUP FORM] Sign up failed, modal remains open`);
     }
-    setIsLoading(false);
   };
 
   return (
@@ -67,13 +71,25 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSwitchToSignIn, onClose }) =>
 
       <form onSubmit={handleSubmit} className="auth-form-content">
         <div className="form-group">
-          <label htmlFor="username">Username</label>
+          <label htmlFor="firstName">First Name</label>
           <input
-            id="username"
+            id="firstName"
             type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Choose a username"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            placeholder="Enter your first name"
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="lastName">Last Name</label>
+          <input
+            id="lastName"
+            type="text"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            placeholder="Enter your last name"
             required
           />
         </div>
@@ -87,6 +103,17 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSwitchToSignIn, onClose }) =>
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email"
             required
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="phoneNumber">Phone Number (Optional)</label>
+          <input
+            id="phoneNumber"
+            type="tel"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            placeholder="Enter your phone number"
           />
         </div>
 
@@ -128,9 +155,9 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSwitchToSignIn, onClose }) =>
         <button
           type="submit"
           className="auth-submit-btn"
-          disabled={isLoading}
+          disabled={loading}
         >
-          {isLoading ? 'Creating Account...' : 'Sign Up'}
+          {loading ? 'Creating Account...' : 'Sign Up'}
         </button>
       </form>
 
