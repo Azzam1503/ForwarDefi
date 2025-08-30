@@ -1,11 +1,7 @@
-import {
-  Injectable,
-  Logger,
-  OnModuleInit,
-  OnModuleDestroy,
-} from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ethers, Contract, Provider, Wallet } from 'ethers';
+import { CustomLogger } from 'src/core/logger/logger.service';
 import {
   CreateOrderDto,
   RepayInstallmentDto,
@@ -28,7 +24,6 @@ import {
 
 @Injectable()
 export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
-  private readonly logger = new Logger(DefiPaymentsService.name);
   private provider: Provider;
   private contract: Contract;
   private wallet: Wallet;
@@ -67,26 +62,43 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
     'event LiquidityWithdrawn(address indexed to, uint256 amount)',
   ];
 
-  constructor(private configService: ConfigService) {}
+  constructor(
+    private configService: ConfigService,
+    private readonly logger: CustomLogger,
+  ) {}
 
   async onModuleInit() {
+    const correlation_id = 'module-init';
+    this.logger.setContext(this.constructor.name + '/onModuleInit');
     try {
+      this.logger.debug(correlation_id, 'Starting BNPL Service initialization');
       await this.initializeProvider();
       await this.initializeContract();
       this.setupEventListeners();
-      this.logger.log('BNPL Service initialized successfully');
+      this.logger.debug(
+        correlation_id,
+        'BNPL Service initialized successfully',
+      );
     } catch (error) {
-      this.logger.error('Failed to initialize BNPL Service:', error);
+      this.logger.error(
+        correlation_id,
+        'Failed to initialize BNPL Service:',
+        error,
+      );
       throw error;
     }
   }
 
   onModuleDestroy() {
+    const correlation_id = 'module-destroy';
+    this.logger.setContext(this.constructor.name + '/onModuleDestroy');
     this.removeEventListeners();
-    this.logger.log('BNPL Service destroyed');
+    this.logger.debug(correlation_id, 'BNPL Service destroyed');
   }
 
   private async initializeProvider() {
+    const correlation_id = 'provider-init';
+    this.logger.setContext(this.constructor.name + '/initializeProvider');
     const rpcUrl =
       this.configService.get<string>('AVALANCHE_RPC_URL') ||
       'https://api.avax.network/ext/bc/C/rpc';
@@ -94,7 +106,8 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
 
     // Test connection
     const network = await this.provider.getNetwork();
-    this.logger.log(
+    this.logger.debug(
+      correlation_id,
       `Connected to network: ${network.name} (${network.chainId})`,
     );
 
@@ -102,13 +115,18 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
     if (privateKey) {
       this.wallet = new ethers.Wallet(privateKey, this.provider);
       const address = await this.wallet.getAddress();
-      this.logger.log(`Wallet initialized: ${address}`);
+      this.logger.debug(correlation_id, `Wallet initialized: ${address}`);
     } else {
-      this.logger.warn('No private key provided - read-only mode');
+      this.logger.debug(
+        correlation_id,
+        'No private key provided - read-only mode',
+      );
     }
   }
 
   private async initializeContract() {
+    const correlation_id = 'contract-init';
+    this.logger.setContext(this.constructor.name + '/initializeContract');
     const contractAddress = this.configService.get<string>(
       'BNPL_CONTRACT_ADDRESS',
     );
@@ -126,7 +144,10 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
     // Test contract connection
     try {
       await this.contract.getTiersCount();
-      this.logger.log(`BNPL contract initialized at ${contractAddress}`);
+      this.logger.debug(
+        correlation_id,
+        `BNPL contract initialized at ${contractAddress}`,
+      );
     } catch (error) {
       throw new Error(
         `Failed to connect to contract at ${contractAddress}: ${error?.message}`,
@@ -137,8 +158,16 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
   // ==================== READ FUNCTIONS ====================
 
   async getOrder(orderId: string): Promise<BNPLOrder> {
+    const correlation_id = `order-${orderId}`;
+    this.logger.setContext(this.constructor.name + '/getOrder');
+    this.logger.debug(correlation_id, `Fetching order: ${orderId}`);
+
     try {
       const order = (await this.contract.getOrder(orderId)) as RawOrder;
+      this.logger.debug(
+        correlation_id,
+        `Order retrieved successfully: ${orderId}`,
+      );
       return {
         buyer: order.buyer,
         merchant: order.merchant,
@@ -156,23 +185,38 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
         closed: order.closed,
       };
     } catch (error) {
-      this.logger.error(`Failed to get order ${orderId}:`, error);
+      this.logger.error(
+        correlation_id,
+        `Failed to get order ${orderId}:`,
+        error,
+      );
       throw new Error(`Failed to retrieve order: ${error?.message}`);
     }
   }
 
   async getQuote(dto: QuoteDto): Promise<QuoteResult> {
+    const correlation_id = `quote-${dto.buyer}`;
+    this.logger.setContext(this.constructor.name + '/getQuote');
+    this.logger.debug(
+      correlation_id,
+      `Getting quote for buyer: ${dto.buyer}, amount: ${dto.purchaseAmount}`,
+    );
+
     try {
       const result = (await this.contract.quote(
         dto.purchaseAmount,
         dto.buyer,
       )) as QuoteResponse;
+      this.logger.debug(
+        correlation_id,
+        `Quote retrieved successfully for buyer: ${dto.buyer}`,
+      );
       return {
         collateralRequired: String(result.collateralRequired),
         totalFee: String(result.totalFee),
       };
     } catch (error) {
-      this.logger.error('Failed to get quote:', error);
+      this.logger.error(correlation_id, 'Failed to get quote:', error);
       throw new Error(
         `Failed to get quote: ${error && typeof error === 'object' && 'message' in error ? error.message : String(error)}`,
       );
@@ -180,31 +224,73 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
   }
 
   async getCreditScore(address: string): Promise<number> {
+    const correlation_id = `credit-score-${address}`;
+    this.logger.setContext(this.constructor.name + '/getCreditScore');
+    this.logger.debug(
+      correlation_id,
+      `Getting credit score for address: ${address}`,
+    );
+
     try {
       const score = (await this.contract.creditScore(address)) as number;
+      this.logger.debug(
+        correlation_id,
+        `Credit score retrieved successfully for address: ${address}`,
+      );
       return Number(score);
     } catch (error) {
-      this.logger.error(`Failed to get credit score for ${address}:`, error);
+      this.logger.error(
+        correlation_id,
+        `Failed to get credit score for ${address}:`,
+        error,
+      );
       throw new Error(`Failed to get credit score: ${error?.message}`);
     }
   }
 
   async getAvailableLiquidity(): Promise<string> {
+    const correlation_id = 'liquidity-check';
+    this.logger.setContext(this.constructor.name + '/getAvailableLiquidity');
+    this.logger.debug(correlation_id, 'Getting available liquidity');
+
     try {
       const liquidity = await this.contract.availableLiquidity();
+      this.logger.debug(
+        correlation_id,
+        `Available liquidity retrieved: ${liquidity.toString()}`,
+      );
       return liquidity.toString();
     } catch (error) {
-      this.logger.error('Failed to get available liquidity:', error);
+      this.logger.error(
+        correlation_id,
+        'Failed to get available liquidity:',
+        error,
+      );
       throw new Error(`Failed to get liquidity: ${error?.message}`);
     }
   }
 
   async getTotalDue(orderId: string): Promise<string> {
+    const correlation_id = `total-due-${orderId}`;
+    this.logger.setContext(this.constructor.name + '/getTotalDue');
+    this.logger.debug(
+      correlation_id,
+      `Getting total due for order: ${orderId}`,
+    );
+
     try {
       const due = await this.contract.totalDue(orderId);
+      this.logger.debug(
+        correlation_id,
+        `Total due retrieved for order ${orderId}: ${String(due)}`,
+      );
       return String(due);
     } catch (error) {
-      this.logger.error(`Failed to get total due for order ${orderId}:`, error);
+      this.logger.error(
+        correlation_id,
+        `Failed to get total due for order ${orderId}:`,
+        error,
+      );
       throw new Error(`Failed to get total due: ${error?.message}`);
     }
   }
@@ -212,14 +298,26 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
   async getNominalInstallment(
     orderId: string,
   ): Promise<{ principalPart: string; feePart: string }> {
+    const correlation_id = `nominal-installment-${orderId}`;
+    this.logger.setContext(this.constructor.name + '/getNominalInstallment');
+    this.logger.debug(
+      correlation_id,
+      `Getting nominal installment for order: ${orderId}`,
+    );
+
     try {
       const result = await this.contract.nominalInstallment(orderId);
+      this.logger.debug(
+        correlation_id,
+        `Nominal installment retrieved for order ${orderId}`,
+      );
       return {
         principalPart: result.principalPart.toString(),
         feePart: result.feePart.toString(),
       };
     } catch (error) {
       this.logger.error(
+        correlation_id,
         `Failed to get nominal installment for order ${orderId}:`,
         error,
       );
@@ -228,8 +326,13 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
   }
 
   async getTiers(): Promise<BNPLTier[]> {
+    const correlation_id = 'get-tiers';
+    this.logger.setContext(this.constructor.name + '/getTiers');
+    this.logger.debug(correlation_id, 'Getting all tiers');
+
     try {
       const count = await this.contract.getTiersCount();
+      this.logger.debug(correlation_id, `Found ${count} tiers`);
       const tiers: BNPLTier[] = [];
 
       for (let i = 0; i < count; i++) {
@@ -242,9 +345,13 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
         });
       }
 
+      this.logger.debug(
+        correlation_id,
+        `Successfully retrieved ${tiers.length} tiers`,
+      );
       return tiers;
     } catch (error) {
-      this.logger.error('Failed to get tiers:', error);
+      this.logger.error(correlation_id, 'Failed to get tiers:', error);
       throw new Error(`Failed to get tiers: ${error?.message}`);
     }
   }
@@ -255,14 +362,23 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
     dto: CreateOrderDto,
     buyerAddress: string,
   ): Promise<OrderCreationResult> {
+    const correlation_id = `create-order-${buyerAddress}`;
+    this.logger.setContext(this.constructor.name + '/createOrder');
+    this.logger.debug(
+      correlation_id,
+      `Creating order for buyer: ${buyerAddress}, amount: ${dto.purchaseAmount}`,
+    );
+
     if (!this.wallet) {
       throw new Error('Wallet not configured for transactions');
     }
 
     try {
       const dueAt = Math.floor(Date.now() / 1000) + parseInt(dto.dueInSeconds);
+      this.logger.debug(correlation_id, `Calculated due date: ${dueAt}`);
 
       // Estimate gas first
+      this.logger.debug(correlation_id, 'Estimating gas for order creation');
       const gasEstimate = await this.contract.createOrder.estimateGas(
         dto.purchaseAmount,
         dto.merchant,
@@ -270,6 +386,10 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
         dto.installments,
       );
 
+      this.logger.debug(
+        correlation_id,
+        `Gas estimate: ${gasEstimate}, proceeding with transaction`,
+      );
       const tx = await this.contract.createOrder(
         dto.purchaseAmount,
         dto.merchant,
@@ -278,6 +398,10 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
         { gasLimit: (gasEstimate * BigInt(120)) / BigInt(100) }, // 20% buffer
       );
 
+      this.logger.debug(
+        correlation_id,
+        `Transaction sent: ${tx.hash}, waiting for confirmation`,
+      );
       const receipt = await tx.wait();
 
       // Parse the OrderCreated event to get the order ID
@@ -296,36 +420,60 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
         orderId = parsed?.args.id.toString();
       }
 
-      this.logger.log(`Order created successfully: ${orderId}, tx: ${tx.hash}`);
+      this.logger.debug(
+        correlation_id,
+        `Order created successfully: ${orderId}, tx: ${tx.hash}`,
+      );
       return { orderId, txHash: tx.hash };
     } catch (error) {
-      this.logger.error('Failed to create order:', error);
+      this.logger.error(correlation_id, 'Failed to create order:', error);
       throw new Error(`Failed to create order: ${error?.message}`);
     }
   }
 
   async repayInstallment(dto: RepayInstallmentDto): Promise<string> {
+    const correlation_id = `repay-installment-${dto.orderId}`;
+    this.logger.setContext(this.constructor.name + '/repayInstallment');
+    this.logger.debug(
+      correlation_id,
+      `Repaying installment for order: ${dto.orderId}, amount: ${dto.amount}`,
+    );
+
     if (!this.wallet) {
       throw new Error('Wallet not configured for transactions');
     }
 
     try {
+      this.logger.debug(
+        correlation_id,
+        'Estimating gas for installment repayment',
+      );
       const gasEstimate = await this.contract.repayInstallment.estimateGas(
         dto.orderId,
         dto.amount,
       );
 
+      this.logger.debug(
+        correlation_id,
+        `Gas estimate: ${gasEstimate}, proceeding with transaction`,
+      );
       const tx = await this.contract.repayInstallment(dto.orderId, dto.amount, {
         gasLimit: (gasEstimate * BigInt(120)) / BigInt(100),
       });
+      this.logger.debug(
+        correlation_id,
+        `Transaction sent: ${tx.hash}, waiting for confirmation`,
+      );
       await tx.wait();
 
-      this.logger.log(
+      this.logger.debug(
+        correlation_id,
         `Installment repaid for order ${dto.orderId}, tx: ${tx.hash}`,
       );
       return tx.hash;
     } catch (error) {
       this.logger.error(
+        correlation_id,
         `Failed to repay installment for order ${dto.orderId}:`,
         error,
       );
@@ -334,45 +482,86 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
   }
 
   async repayFull(orderId: string): Promise<string> {
+    const correlation_id = `repay-full-${orderId}`;
+    this.logger.setContext(this.constructor.name + '/repayFull');
+    this.logger.debug(
+      correlation_id,
+      `Repaying full amount for order: ${orderId}`,
+    );
+
     if (!this.wallet) {
       throw new Error('Wallet not configured for transactions');
     }
 
     try {
+      this.logger.debug(correlation_id, 'Estimating gas for full repayment');
       const gasEstimate = await this.contract.repayFull.estimateGas(orderId);
 
+      this.logger.debug(
+        correlation_id,
+        `Gas estimate: ${gasEstimate}, proceeding with transaction`,
+      );
       const tx = await this.contract.repayFull(orderId, {
         gasLimit: (gasEstimate * BigInt(120)) / BigInt(100),
       });
+      this.logger.debug(
+        correlation_id,
+        `Transaction sent: ${tx.hash}, waiting for confirmation`,
+      );
       await tx.wait();
 
-      this.logger.log(
+      this.logger.debug(
+        correlation_id,
         `Full repayment completed for order ${orderId}, tx: ${tx.hash}`,
       );
       return tx.hash;
     } catch (error) {
-      this.logger.error(`Failed to repay full for order ${orderId}:`, error);
+      this.logger.error(
+        correlation_id,
+        `Failed to repay full for order ${orderId}:`,
+        error,
+      );
       throw new Error(`Failed to repay full: ${error?.message}`);
     }
   }
 
   async liquidateOrder(orderId: string): Promise<string> {
+    const correlation_id = `liquidate-${orderId}`;
+    this.logger.setContext(this.constructor.name + '/liquidateOrder');
+    this.logger.debug(correlation_id, `Liquidating order: ${orderId}`);
+
     if (!this.wallet) {
       throw new Error('Wallet not configured for transactions');
     }
 
     try {
+      this.logger.debug(correlation_id, 'Estimating gas for liquidation');
       const gasEstimate = await this.contract.liquidate.estimateGas(orderId);
 
+      this.logger.debug(
+        correlation_id,
+        `Gas estimate: ${gasEstimate}, proceeding with transaction`,
+      );
       const tx = await this.contract.liquidate(orderId, {
         gasLimit: (gasEstimate * BigInt(120)) / BigInt(100),
       });
+      this.logger.debug(
+        correlation_id,
+        `Transaction sent: ${tx.hash}, waiting for confirmation`,
+      );
       await tx.wait();
 
-      this.logger.log(`Order ${orderId} liquidated, tx: ${tx.hash}`);
+      this.logger.debug(
+        correlation_id,
+        `Order ${orderId} liquidated, tx: ${tx.hash}`,
+      );
       return tx.hash;
     } catch (error) {
-      this.logger.error(`Failed to liquidate order ${orderId}:`, error);
+      this.logger.error(
+        correlation_id,
+        `Failed to liquidate order ${orderId}:`,
+        error,
+      );
       throw new Error(`Failed to liquidate order: ${error?.message}`);
     }
   }
@@ -380,76 +569,133 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
   // ==================== ADMIN FUNCTIONS ====================
 
   async fundLiquidity(dto: FundLiquidityDto): Promise<string> {
+    const correlation_id = `fund-liquidity-${dto.amount}`;
+    this.logger.setContext(this.constructor.name + '/fundLiquidity');
+    this.logger.debug(correlation_id, `Funding liquidity: ${dto.amount}`);
+
     if (!this.wallet) {
       throw new Error('Wallet not configured for transactions');
     }
 
     try {
+      this.logger.debug(correlation_id, 'Estimating gas for liquidity funding');
       const gasEstimate = await this.contract.fundLiquidity.estimateGas(
         dto.amount,
       );
 
+      this.logger.debug(
+        correlation_id,
+        `Gas estimate: ${gasEstimate}, proceeding with transaction`,
+      );
       const tx = await this.contract.fundLiquidity(dto.amount, {
         gasLimit: (gasEstimate * BigInt(120)) / BigInt(100),
       });
+      this.logger.debug(
+        correlation_id,
+        `Transaction sent: ${tx.hash}, waiting for confirmation`,
+      );
       await tx.wait();
 
-      this.logger.log(`Liquidity funded: ${dto.amount}, tx: ${tx.hash}`);
+      this.logger.debug(
+        correlation_id,
+        `Liquidity funded: ${dto.amount}, tx: ${tx.hash}`,
+      );
       return tx.hash;
     } catch (error) {
-      this.logger.error('Failed to fund liquidity:', error);
+      this.logger.error(correlation_id, 'Failed to fund liquidity:', error);
       throw new Error(`Failed to fund liquidity: ${error?.message}`);
     }
   }
 
   async withdrawLiquidity(dto: WithdrawLiquidityDto): Promise<string> {
+    const correlation_id = `withdraw-liquidity-${dto.to}`;
+    this.logger.setContext(this.constructor.name + '/withdrawLiquidity');
+    this.logger.debug(
+      correlation_id,
+      `Withdrawing liquidity: ${dto.amount} to ${dto.to}`,
+    );
+
     if (!this.wallet) {
       throw new Error('Wallet not configured for transactions');
     }
 
     try {
+      this.logger.debug(
+        correlation_id,
+        'Estimating gas for liquidity withdrawal',
+      );
       const gasEstimate = await this.contract.withdrawLiquidity.estimateGas(
         dto.to,
         dto.amount,
       );
 
+      this.logger.debug(
+        correlation_id,
+        `Gas estimate: ${gasEstimate}, proceeding with transaction`,
+      );
       const tx = await this.contract.withdrawLiquidity(dto.to, dto.amount, {
         gasLimit: (gasEstimate * BigInt(120)) / BigInt(100),
       });
+      this.logger.debug(
+        correlation_id,
+        `Transaction sent: ${tx.hash}, waiting for confirmation`,
+      );
       await tx.wait();
 
-      this.logger.log(
+      this.logger.debug(
+        correlation_id,
         `Liquidity withdrawn: ${dto.amount} to ${dto.to}, tx: ${tx.hash}`,
       );
       return tx.hash;
     } catch (error) {
-      this.logger.error('Failed to withdraw liquidity:', error);
+      this.logger.error(correlation_id, 'Failed to withdraw liquidity:', error);
       throw new Error(`Failed to withdraw liquidity: ${error?.message}`);
     }
   }
 
   async setCreditScore(dto: SetCreditScoreDto): Promise<string> {
+    const correlation_id = `set-credit-score-${dto.address}`;
+    this.logger.setContext(this.constructor.name + '/setCreditScore');
+    this.logger.debug(
+      correlation_id,
+      `Setting credit score for ${dto.address}: ${dto.score}`,
+    );
+
     if (!this.wallet) {
       throw new Error('Wallet not configured for transactions');
     }
 
     try {
+      this.logger.debug(
+        correlation_id,
+        'Estimating gas for credit score setting',
+      );
       const gasEstimate = await this.contract.setCreditScore.estimateGas(
         dto.address,
         dto.score,
       );
 
+      this.logger.debug(
+        correlation_id,
+        `Gas estimate: ${gasEstimate}, proceeding with transaction`,
+      );
       const tx = await this.contract.setCreditScore(dto.address, dto.score, {
         gasLimit: (gasEstimate * BigInt(120)) / BigInt(100),
       });
+      this.logger.debug(
+        correlation_id,
+        `Transaction sent: ${tx.hash}, waiting for confirmation`,
+      );
       await tx.wait();
 
-      this.logger.log(
+      this.logger.debug(
+        correlation_id,
         `Credit score set for ${dto.address}: ${dto.score}, tx: ${tx.hash}`,
       );
       return tx.hash;
     } catch (error) {
       this.logger.error(
+        correlation_id,
         `Failed to set credit score for ${dto.address}:`,
         error,
       );
@@ -458,11 +704,19 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
   }
 
   async setTier(dto: SetTierDto): Promise<string> {
+    const correlation_id = `set-tier-${dto.idx}`;
+    this.logger.setContext(this.constructor.name + '/setTier');
+    this.logger.debug(
+      correlation_id,
+      `Setting tier ${dto.idx} with parameters: minScore=${dto.minScore}, collateralBps=${dto.collateralBps}, feeBps=${dto.feeBps}, maxLoan=${dto.maxLoan}`,
+    );
+
     if (!this.wallet) {
       throw new Error('Wallet not configured for transactions');
     }
 
     try {
+      this.logger.debug(correlation_id, 'Estimating gas for tier setting');
       const gasEstimate = await this.contract.setTier.estimateGas(
         dto.idx,
         dto.minScore,
@@ -471,6 +725,10 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
         dto.maxLoan,
       );
 
+      this.logger.debug(
+        correlation_id,
+        `Gas estimate: ${gasEstimate}, proceeding with transaction`,
+      );
       const tx = await this.contract.setTier(
         dto.idx,
         dto.minScore,
@@ -479,12 +737,23 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
         dto.maxLoan,
         { gasLimit: (gasEstimate * BigInt(120)) / BigInt(100) },
       );
+      this.logger.debug(
+        correlation_id,
+        `Transaction sent: ${tx.hash}, waiting for confirmation`,
+      );
       await tx.wait();
 
-      this.logger.log(`Tier ${dto.idx} updated, tx: ${tx.hash}`);
+      this.logger.debug(
+        correlation_id,
+        `Tier ${dto.idx} updated, tx: ${tx.hash}`,
+      );
       return tx.hash;
     } catch (error) {
-      this.logger.error(`Failed to set tier ${dto.idx}:`, error);
+      this.logger.error(
+        correlation_id,
+        `Failed to set tier ${dto.idx}:`,
+        error,
+      );
       throw new Error(`Failed to set tier: ${error?.message}`);
     }
   }
@@ -492,6 +761,10 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
   // ==================== EVENT LISTENING ====================
 
   setupEventListeners() {
+    const correlation_id = 'event-setup';
+    this.logger.setContext(this.constructor.name + '/setupEventListeners');
+    this.logger.debug(correlation_id, 'Setting up event listeners');
+
     if (!this.contract) return;
 
     const orderCreatedListener = (
@@ -505,7 +778,8 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
       installments,
       event,
     ) => {
-      this.logger.log(
+      this.logger.debug(
+        correlation_id,
         `Event: Order Created - ID: ${id}, Buyer: ${buyer}, Principal: ${this.formatTokenAmount(principal.toString())} USDC`,
       );
     };
@@ -518,7 +792,8 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
       paidFee,
       event,
     ) => {
-      this.logger.log(
+      this.logger.debug(
+        correlation_id,
         `Event: Installment Paid - Order: ${id}, Amount: ${this.formatTokenAmount(amount.toString())} USDC`,
       );
     };
@@ -530,31 +805,36 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
       feeDiscount,
       event,
     ) => {
-      this.logger.log(
+      this.logger.debug(
+        correlation_id,
         `Event: Order Fully Repaid - Order: ${id}, Total: ${this.formatTokenAmount(totalPaid.toString())} USDC`,
       );
     };
 
     const orderLiquidatedListener = (id, seizedCollateral, event) => {
-      this.logger.log(
+      this.logger.debug(
+        correlation_id,
         `Event: Order Liquidated - Order: ${id}, Seized: ${this.formatTokenAmount(seizedCollateral.toString())} USDC`,
       );
     };
 
     const creditScoreUpdatedListener = (who, oldScore, newScore, event) => {
-      this.logger.log(
+      this.logger.debug(
+        correlation_id,
         `Event: Credit Score Updated - Address: ${who}, Old: ${oldScore}, New: ${newScore}`,
       );
     };
 
     const liquidityFundedListener = (funder, amount, event) => {
-      this.logger.log(
+      this.logger.debug(
+        correlation_id,
         `Event: Liquidity Funded - Funder: ${funder}, Amount: ${this.formatTokenAmount(amount.toString())} USDC`,
       );
     };
 
     const liquidityWithdrawnListener = (to, amount, event) => {
-      this.logger.log(
+      this.logger.debug(
+        correlation_id,
         `Event: Liquidity Withdrawn - To: ${to}, Amount: ${this.formatTokenAmount(amount.toString())} USDC`,
       );
     };
@@ -579,7 +859,7 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
       () => this.contract.off('LiquidityWithdrawn', liquidityWithdrawnListener),
     ];
 
-    this.logger.log('Event listeners setup complete');
+    this.logger.debug(correlation_id, 'Event listeners setup complete');
   }
 
   private removeEventListeners() {
@@ -598,30 +878,47 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
   }
 
   async getNetworkInfo(): Promise<NetworkInfo> {
+    const correlation_id = 'network-info';
+    this.logger.setContext(this.constructor.name + '/getNetworkInfo');
+    this.logger.debug(correlation_id, 'Getting network information');
+
     try {
       const network = await this.provider.getNetwork();
       const feeData = await this.provider.getFeeData();
+      this.logger.debug(
+        correlation_id,
+        `Network info retrieved: ${network.name} (${network.chainId})`,
+      );
       return {
         chainId: network.chainId.toString(),
         name: network.name,
         gasPrice: feeData.gasPrice?.toString() || '0',
       };
     } catch (error) {
-      this.logger.error('Failed to get network info:', error);
+      this.logger.error(correlation_id, 'Failed to get network info:', error);
       throw new Error(`Failed to get network info: ${error?.message}`);
     }
   }
 
   async getWalletBalance(): Promise<string> {
+    const correlation_id = 'wallet-balance';
+    this.logger.setContext(this.constructor.name + '/getWalletBalance');
+    this.logger.debug(correlation_id, 'Getting wallet balance');
+
     if (!this.wallet) {
       throw new Error('Wallet not configured');
     }
 
     try {
       const balance = await this.provider.getBalance(this.wallet.address);
-      return ethers.formatEther(balance);
+      const formattedBalance = ethers.formatEther(balance);
+      this.logger.debug(
+        correlation_id,
+        `Wallet balance retrieved: ${formattedBalance} AVAX`,
+      );
+      return formattedBalance;
     } catch (error) {
-      this.logger.error('Failed to get wallet balance:', error);
+      this.logger.error(correlation_id, 'Failed to get wallet balance:', error);
       throw new Error(`Failed to get wallet balance: ${error?.message}`);
     }
   }
