@@ -77,8 +77,8 @@
 .step:not(:last-child)::after {
   content: '';
   position: absolute;
-  top: 1.5rem;
-  left: 2.5rem;
+  top: 1rem;
+  left: 5.5rem;
   width: 2rem;
   height: 2px;
   background: rgba(255, 255, 255, 0.2);

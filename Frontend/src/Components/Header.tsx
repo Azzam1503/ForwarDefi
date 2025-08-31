@@ -39,7 +39,7 @@ const Header: React.FC = () => {
               </Link>
               <Link to="/loans" className="nav-link">
                 <DollarSign size={16} />
-                Loans
+                Purchases
               </Link>
             </nav>
           )}

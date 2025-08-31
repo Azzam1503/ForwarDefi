@@ -1,4 +1,4 @@
-/* Loan Details Page Styles */
+/* Purchase Details Page Styles */
 
 /* CSS Custom Properties */
 :root {
@@ -28,7 +28,7 @@
 }
 
 /* Base Layout */
-.loan-details {
+.purchase-details {
   width: 100%;
   max-width: 100%;
   margin: 0 auto;
@@ -40,7 +40,7 @@
 }
 
 /* Breadcrumb Navigation */
-.loan-details-breadcrumb {
+.purchase-details-breadcrumb {
   margin-bottom: 1.5rem;
 }
 
@@ -980,43 +980,4 @@
 }
 
 @media (max-width: 480px) {
-  .loan-details-header {
-    padding: 1rem;
-    margin: 0 0.5rem 1rem 0.5rem;
-  }
 
-  .header-title {
-    font-size: 1.75rem;
-    line-height: 1.3;
-  }
-
-  .header-actions {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .btn-refresh,
-  .btn-secondary,
-  .btn-danger {
-    width: 100%;
-    min-width: auto;
-  }
-
-  .details-card {
-    padding: 1rem;
-  }
-
-  .overview-hero,
-  .collateral-hero {
-    padding: 1rem;
-  }
-
-  .amount-value {
-    font-size: 1.75rem;
-  }
-
-  .rate-value,
-  .ratio-value {
-    font-size: 1rem;
-  }
-}

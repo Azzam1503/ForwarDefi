@@ -274,15 +274,35 @@ export const authApi = {
       throw error;
     }
   },
+
+  saveWalletAddress: async (userId: string, walletAddress: string): Promise<{ message: string; data: User }> => {
+    if (API_CONFIG.ENABLE_LOGGING) {
+      console.log(`🔗 [AUTH] Saving wallet address for user: ${userId}`, { walletAddress });
+    }
+
+    try {
+      const response = await apiClient.put<{ message: string; data: User }>(
+        API_CONFIG.ENDPOINTS.USERS.WALLET_ADDRESS(userId),
+        { wallet_address: walletAddress }
+      );
+      if (API_CONFIG.ENABLE_LOGGING) {
+        console.log(`✅ [AUTH] Wallet address saved successfully for user: ${userId}`);
+      }
+      return response;
+    } catch (error) {
+      if (API_CONFIG.ENABLE_LOGGING) {
+        console.error(`❌ [AUTH] Failed to save wallet address for user: ${userId}`, error);
+      }
+      throw error;
+    }
+  },
 };
 
 // Loan API functions
-import * as LoanTypes from "../types/loan";
+import * as LoanTypes from '../types/loan';
 
 export const loanApi = {
-  createLoan: async (
-    loanData: LoanTypes.CreateLoanRequest
-  ): Promise<LoanTypes.LoanApiResponse> => {
+  createLoan: async (loanData: LoanTypes.CreateLoanRequest): Promise<LoanTypes.LoanApiResponse> => {
     if (API_CONFIG.ENABLE_LOGGING) {
       console.log(`💰 [LOAN] Creating new loan for user: ${loanData.user_id}`, {
         amount: loanData.amount,
@@ -292,10 +312,7 @@ export const loanApi = {
     }
 
     try {
-      const response = await apiClient.post<LoanTypes.LoanApiResponse>(
-        API_CONFIG.ENDPOINTS.LOANS.CREATE,
-        loanData
-      );
+      const response = await apiClient.post<LoanTypes.LoanApiResponse>(API_CONFIG.ENDPOINTS.LOANS.CREATE, loanData);
       if (API_CONFIG.ENABLE_LOGGING) {
         console.log(`✅ [LOAN] Loan created successfully:`, response.data);
       }
@@ -314,13 +331,9 @@ export const loanApi = {
     }
 
     try {
-      const response = await apiClient.get<LoanTypes.LoansApiResponse>(
-        API_CONFIG.ENDPOINTS.LOANS.BY_USER(userId)
-      );
+      const response = await apiClient.get<LoanTypes.LoansApiResponse>(API_CONFIG.ENDPOINTS.LOANS.BY_USER(userId));
       if (API_CONFIG.ENABLE_LOGGING) {
-        console.log(
-          `✅ [LOAN] Found ${response.data.length} loans for user: ${userId}`
-        );
+        console.log(`✅ [LOAN] Found ${response.data.length} loans for user: ${userId}`);
       }
       return response;
     } catch (error) {
@@ -337,9 +350,7 @@ export const loanApi = {
     }
 
     try {
-      const response = await apiClient.get<LoanTypes.LoansApiResponse>(
-        API_CONFIG.ENDPOINTS.LOANS.ALL
-      );
+      const response = await apiClient.get<LoanTypes.LoansApiResponse>(API_CONFIG.ENDPOINTS.LOANS.ALL);
       if (API_CONFIG.ENABLE_LOGGING) {
         console.log(`✅ [LOAN] Found ${response.data.length} total loans`);
       }
@@ -358,9 +369,7 @@ export const loanApi = {
     }
 
     try {
-      const response = await apiClient.get<LoanTypes.LoanApiResponse>(
-        API_CONFIG.ENDPOINTS.LOANS.BY_ID(loanId)
-      );
+      const response = await apiClient.get<LoanTypes.LoanApiResponse>(API_CONFIG.ENDPOINTS.LOANS.BY_ID(loanId));
       if (API_CONFIG.ENABLE_LOGGING) {
         console.log(`✅ [LOAN] Loan found:`, response.data);
       }
@@ -373,19 +382,13 @@ export const loanApi = {
     }
   },
 
-  updateLoan: async (
-    loanId: string,
-    updateData: LoanTypes.UpdateLoanRequest
-  ): Promise<LoanTypes.LoanApiResponse> => {
+  updateLoan: async (loanId: string, updateData: LoanTypes.UpdateLoanRequest): Promise<LoanTypes.LoanApiResponse> => {
     if (API_CONFIG.ENABLE_LOGGING) {
       console.log(`📝 [LOAN] Updating loan: ${loanId}`, updateData);
     }
 
     try {
-      const response = await apiClient.patch<LoanTypes.LoanApiResponse>(
-        API_CONFIG.ENDPOINTS.LOANS.BY_ID(loanId),
-        updateData
-      );
+      const response = await apiClient.patch<LoanTypes.LoanApiResponse>(API_CONFIG.ENDPOINTS.LOANS.BY_ID(loanId), updateData);
       if (API_CONFIG.ENABLE_LOGGING) {
         console.log(`✅ [LOAN] Loan updated successfully:`, response.data);
       }
@@ -398,26 +401,15 @@ export const loanApi = {
     }
   },
 
-  updateLoanStatus: async (
-    loanId: string,
-    status: LoanTypes.LoanStatus
-  ): Promise<LoanTypes.LoanApiResponse> => {
+  updateLoanStatus: async (loanId: string, status: LoanTypes.LoanStatus): Promise<LoanTypes.LoanApiResponse> => {
     if (API_CONFIG.ENABLE_LOGGING) {
-      console.log(
-        `🔄 [LOAN] Updating loan status to ${status} for loan: ${loanId}`
-      );
+      console.log(`🔄 [LOAN] Updating loan status to ${status} for loan: ${loanId}`);
     }
 
     try {
-      const response = await apiClient.patch<LoanTypes.LoanApiResponse>(
-        API_CONFIG.ENDPOINTS.LOANS.UPDATE_STATUS(loanId),
-        { status }
-      );
+      const response = await apiClient.patch<LoanTypes.LoanApiResponse>(API_CONFIG.ENDPOINTS.LOANS.UPDATE_STATUS(loanId), { status });
       if (API_CONFIG.ENABLE_LOGGING) {
-        console.log(
-          `✅ [LOAN] Loan status updated successfully:`,
-          response.data
-        );
+        console.log(`✅ [LOAN] Loan status updated successfully:`, response.data);
       }
       return response;
     } catch (error) {

@@ -19,24 +19,24 @@ import {
 } from 'lucide-react';
 import '../../styles/loan-details.css';
 
-interface LoanDetailsProps {
+interface PurchaseDetailsProps {
   loanId: string;
   onBack?: () => void;
-  onEdit?: (loan: Loan) => void;
+  onEdit?: (loan: LoanTypes.Loan) => void;
   onDelete?: (loanId: string) => void;
 }
 
-const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId, onBack, onEdit, onDelete }) => {
+const PurchaseDetails: React.FC<PurchaseDetailsProps> = ({ loanId, onBack, onEdit, onDelete }) => {
   const [loan, setLoan] = useState<LoanTypes.Loan | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    fetchLoanDetails();
+    fetchPurchaseDetails();
   }, [loanId]);
 
-  const fetchLoanDetails = async () => {
+  const fetchPurchaseDetails = async () => {
     setLoading(true);
     setError('');
 
@@ -44,7 +44,7 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId, onBack, onEdit, onDel
       const response = await loanApi.getLoanById(loanId);
       setLoan(response.data);
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch loan details');
+      setError(err.message || 'Failed to fetch purchase details');
     } finally {
       setLoading(false);
     }
@@ -52,7 +52,7 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId, onBack, onEdit, onDel
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await fetchLoanDetails();
+    await fetchPurchaseDetails();
     setRefreshing(false);
   };
 
@@ -94,7 +94,7 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId, onBack, onEdit, onDel
     }
   };
 
-  const calculateLoanMetrics = (loan: Loan) => {
+  const calculatePurchaseMetrics = (loan: LoanTypes.Loan) => {
     const monthlyRate = loan.interest_rate / 100 / 12;
     const estimatedTerm = 12; // Default term, could be stored in loan entity
     const monthlyPayment = (loan.amount * monthlyRate * Math.pow(1 + monthlyRate, estimatedTerm)) / (Math.pow(1 + monthlyRate, estimatedTerm) - 1);
@@ -116,8 +116,8 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId, onBack, onEdit, onDel
       <div className="loan-details-loading">
         <div className="loading-content">
           <div className="spinner"></div>
-          <h3>Loading Loan Details</h3>
-          <p>Please wait while we fetch your loan information...</p>
+          <h3>Loading Purchase Details</h3>
+          <p>Please wait while we fetch your purchase information...</p>
         </div>
       </div>
     );
@@ -128,10 +128,10 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId, onBack, onEdit, onDel
       <div className="loan-details-error">
         <div className="error-content">
           <AlertCircle size={48} />
-          <h3>Error Loading Loan</h3>
+          <h3>Error Loading Purchase</h3>
           <p>{error}</p>
           <div className="error-actions">
-            <button className="btn-primary" onClick={fetchLoanDetails}>
+            <button className="btn-primary" onClick={fetchPurchaseDetails}>
               Try Again
             </button>
             {onBack && (
@@ -150,8 +150,8 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId, onBack, onEdit, onDel
       <div className="loan-details-not-found">
         <div className="not-found-content">
           <FileText size={48} />
-          <h3>Loan Not Found</h3>
-          <p>The requested loan could not be found.</p>
+          <h3>Purchase Not Found</h3>
+          <p>The requested purchase could not be found.</p>
           {onBack && (
             <button className="btn-primary" onClick={onBack}>
               Go Back
@@ -162,16 +162,16 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId, onBack, onEdit, onDel
     );
   }
 
-  const metrics = calculateLoanMetrics(loan);
+  const metrics = calculatePurchaseMetrics(loan);
 
   return (
     <div className="loan-details">
       {/* Breadcrumb Navigation */}
       <div className="loan-details-breadcrumb">
         <div className="breadcrumb-content">
-          <span className="breadcrumb-item">Loans</span>
+          <span className="breadcrumb-item">Purchases</span>
           <span className="breadcrumb-separator">›</span>
-          <span className="breadcrumb-item active">Loan Details</span>
+          <span className="breadcrumb-item active">Purchase Details</span>
         </div>
       </div>
 
@@ -183,13 +183,13 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId, onBack, onEdit, onDel
               {onBack && (
                 <button className="btn-back" onClick={onBack}>
                   <ArrowLeft size={16} />
-                  Back to Loans
+                  Back to Purchases
                 </button>
               )}
             </div>
             
             <div className="header-main">
-              <h1 className="header-title">Loan Details</h1>
+              <h1 className="header-title">Purchase Details</h1>
               <div className="loan-meta">
                 <span className="loan-id">ID: {loan.loan_id.slice(0, 8)}...</span>
                 <div 
@@ -244,17 +244,17 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId, onBack, onEdit, onDel
       {/* Main Content */}
       <div className="loan-details-content">
         <div className="details-grid">
-          {/* Loan Overview Card */}
-          <div className="details-card loan-overview">
+          {/* Purchase Overview Card */}
+          <div className="details-card loan-overview">  
             <div className="card-header">
               <DollarSign size={20} />
-              <h3>Loan Overview</h3>
+              <h3>Purchase Overview</h3>
             </div>
             
             <div className="card-content">
               <div className="overview-hero">
                 <div className="hero-amount">
-                  <span className="amount-label">Loan Amount</span>
+                  <span className="amount-label">Purchase Amount</span>
                   <span className="amount-value">{formatCurrency(loan.amount)}</span>
                 </div>
                 <div className="hero-rate">
@@ -327,7 +327,7 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId, onBack, onEdit, onDel
           <div className="details-card timeline-card">
             <div className="card-header">
               <Calendar size={20} />
-              <h3>Loan Timeline</h3>
+              <h3>Purchase Timeline</h3>
             </div>
             
             <div className="card-content">
@@ -372,7 +372,7 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId, onBack, onEdit, onDel
                       <TrendingUp size={16} />
                     </div>
                     <div className="timeline-content">
-                      <div className="timeline-title">Loan Active</div>
+                      <div className="timeline-title">Purchase Active</div>
                       <div className="timeline-date">In Progress</div>
                     </div>
                   </div>
@@ -384,7 +384,7 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId, onBack, onEdit, onDel
                       <CheckCircle size={16} />
                     </div>
                     <div className="timeline-content">
-                      <div className="timeline-title">Loan Repaid</div>
+                      <div className="timeline-title">Purchase Completed</div>
                       <div className="timeline-date">{formatDate(loan.updated_at)}</div>
                     </div>
                   </div>
@@ -396,7 +396,7 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId, onBack, onEdit, onDel
                       <XCircle size={16} />
                     </div>
                     <div className="timeline-content">
-                      <div className="timeline-title">Loan Defaulted</div>
+                      <div className="timeline-title">Purchase Defaulted</div>
                       <div className="timeline-date">{formatDate(loan.updated_at)}</div>
                     </div>
                   </div>
@@ -423,7 +423,7 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId, onBack, onEdit, onDel
                       <div className="action-content">
                         <div className="action-title">Under Review</div>
                         <div className="action-description">
-                          Your loan application is being reviewed. You'll be notified of the decision soon.
+                          Your purchase application is being reviewed. You'll be notified of the decision soon.
                         </div>
                       </div>
                     </div>
@@ -436,9 +436,9 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId, onBack, onEdit, onDel
                       <CheckCircle size={16} />
                     </div>
                     <div className="action-content">
-                      <div className="action-title">Loan Approved</div>
+                      <div className="action-title">Purchase Approved</div>
                       <div className="action-description">
-                        Congratulations! Your loan has been approved. Funds will be disbursed soon.
+                        Congratulations! Your purchase has been approved. Funds will be disbursed soon.
                       </div>
                     </div>
                   </div>
@@ -452,7 +452,7 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId, onBack, onEdit, onDel
                     <div className="action-content">
                       <div className="action-title">Make Payment</div>
                       <div className="action-description">
-                        Your loan is active. Make your monthly payments to stay on track.
+                        Your purchase is active. Make your monthly payments to stay on track.
                       </div>
                     </div>
                     <button className="action-button">
@@ -467,9 +467,9 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId, onBack, onEdit, onDel
                       <CheckCircle size={16} />
                     </div>
                     <div className="action-content">
-                      <div className="action-title">Loan Completed</div>
+                      <div className="action-title">Purchase Completed</div>
                       <div className="action-description">
-                        Congratulations! You've successfully repaid this loan.
+                        Congratulations! You've successfully completed this purchase.
                       </div>
                     </div>
                   </div>
@@ -481,9 +481,9 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId, onBack, onEdit, onDel
                       <XCircle size={16} />
                     </div>
                     <div className="action-content">
-                      <div className="action-title">Loan Defaulted</div>
+                      <div className="action-title">Purchase Defaulted</div>
                       <div className="action-description">
-                        This loan has been marked as defaulted. Contact support for assistance.
+                        This purchase has been marked as defaulted. Contact support for assistance.
                       </div>
                     </div>
                   </div>
@@ -497,4 +497,4 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId, onBack, onEdit, onDel
   );
 };
 
-export default LoanDetails;
+export default PurchaseDetails;

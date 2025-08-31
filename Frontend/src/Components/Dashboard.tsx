@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import EnhancedChainChecker from "./Wallet/EnhancedChainChecker";
 import EnhancedWalletInfo from "./Wallet/EnhancedWalletInfo";
-import { useAuth } from "../contexts/AuthContext";
-import { loanApi } from "../services/api";
-import * as LoanTypes from "../types/loan";
-import ProtectedConnectButton from "./ProtectedConnectButton";
-import {
-  TrendingUp,
-  DollarSign,
-  CreditCard,
-  History,
-  Shield,
-  Zap,
+import { useAuth } from '../contexts/AuthContext';
+import { loanApi } from '../services/api';
+import * as LoanTypes from '../types/loan';
+import ProtectedConnectButton from './ProtectedConnectButton';
+import { 
+  TrendingUp, 
+  DollarSign, 
+  CreditCard, 
+  History, 
+  Shield, 
+  Zap, 
   Target,
   Users,
   Activity,
@@ -20,8 +20,8 @@ import {
   ArrowRight,
   Star,
   Plus,
-  Eye,
-} from "lucide-react";
+  Eye
+} from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
@@ -38,13 +38,12 @@ const Dashboard: React.FC = () => {
 
   const fetchUserLoans = async () => {
     if (!user) return;
-
     setLoansLoading(true);
     try {
       const response = await loanApi.getUserLoans(user.id);
       setUserLoans(response.data);
     } catch (error) {
-      console.error("Failed to fetch user loans:", error);
+      console.error('Failed to fetch user loans:', error);
     } finally {
       setLoansLoading(false);
     }
@@ -67,7 +66,7 @@ const Dashboard: React.FC = () => {
     },
     {
       icon: <Activity size={24} />,
-      label: "Loans Processed",
+      label: "Purchases Processed",
       value: "456",
       change: "+15.3%",
       positive: true,
@@ -84,16 +83,10 @@ const Dashboard: React.FC = () => {
   const getLoanSummary = () => {
     return {
       total: userLoans.length,
-      active: userLoans.filter((l) => l.status === LoanTypes.LoanStatus.ACTIVE)
-        .length,
-      pending: userLoans.filter(
-        (l) => l.status === LoanTypes.LoanStatus.PENDING
-      ).length,
+      active: userLoans.filter(l => l.status === LoanTypes.LoanStatus.ACTIVE).length,
+      pending: userLoans.filter(l => l.status === LoanTypes.LoanStatus.PENDING).length,
       totalBorrowed: userLoans.reduce((sum, loan) => {
-        if (
-          loan.status === LoanTypes.LoanStatus.ACTIVE ||
-          loan.status === LoanTypes.LoanStatus.REPAID
-        ) {
+        if (loan.status === LoanTypes.LoanStatus.ACTIVE || loan.status === LoanTypes.LoanStatus.REPAID) {
           return sum + loan.amount;
         }
         return sum;
@@ -107,45 +100,38 @@ const Dashboard: React.FC = () => {
     {
       id: "create-loan",
       icon: <DollarSign size={32} />,
-      title: "Create Loan",
-      description:
-        "Request instant crypto loans with competitive rates and flexible terms",
-      benefits: [
-        "Instant approval",
-        "Low interest rates",
-        "Flexible repayment",
-      ],
+      title: 'Create Loan',
+      description: 'Request instant crypto transfers with competitive rates and flexible terms',
+      benefits: ['Instant approval', 'Low interest rates', 'Flexible repayment'],
       comingSoon: false,
-      action: () => navigate("/loans"),
+      action: () => navigate('/loans')
     },
     {
       id: "my-loans",
       icon: <CreditCard size={32} />,
-      title: "My Loans",
-      description:
-        "View and manage your active loan agreements and payment schedules",
-      benefits: ["Track payments", "Manage terms", "View history"],
+      title: 'My Purchases',
+      description: 'View and manage your active purchase agreements and payment schedules',
+      benefits: ['Track payments', 'Manage terms', 'View history'],
       comingSoon: false,
-      action: () => navigate("/loans"),
+      action: () => navigate('/loans')
     },
     {
       id: "payment-history",
       icon: <History size={32} />,
-      title: "Payment History",
-      description:
-        "Track your payment history and monitor your credit score improvement",
-      benefits: ["Credit scoring", "Payment analytics", "Performance tracking"],
-      comingSoon: true,
+      title: 'Payment History',
+      description: 'Track your payment history and monitor your credit score improvement',
+      benefits: ['Credit scoring', 'Payment analytics', 'Performance tracking'],
+      comingSoon: false,
+      action: () => navigate('/history')
     },
     {
       id: "insurance",
       icon: <Shield size={32} />,
-      title: "Loan Protection",
-      description:
-        "Protect your loans with smart contract insurance and risk management",
-      benefits: ["Smart contracts", "Risk mitigation", "Automated protection"],
-      comingSoon: true,
-    },
+      title: 'Purchase Protection',
+      description: 'Protect your transfers with smart contract insurance and risk management',
+      benefits: ['Smart contracts', 'Risk mitigation', 'Automated protection'],
+      comingSoon: true
+    }
   ];
 
   return (
@@ -162,7 +148,7 @@ const Dashboard: React.FC = () => {
           <div className="hero-features">
             <div className="hero-feature">
               <Zap size={20} />
-              <span>Instant Loans</span>
+              <span>Instant Transfers</span>
             </div>
             <div className="hero-feature">
               <Shield size={20} />
@@ -299,16 +285,90 @@ const Dashboard: React.FC = () => {
             </div>
           )}
 
+          {/* Purchases Overview */}
+          {isAuthenticated && (
+            <div className="loans-overview">
+              <div className="section-header">
+                <h2 className="section-title">Your Purchases Overview</h2>
+                <button className="btn-view-all" onClick={() => navigate('/loans')}>
+                  <Eye size={16} />
+                  View All Purchases
+                </button>
+              </div>
+              
+              <div className="loans-quick-stats">
+                <div className="quick-stat">
+                  <div className="stat-icon total-loans">
+                    <CreditCard size={20} />
+                  </div>
+                  <div className="stat-content">
+                    <div className="stat-value">{loansLoading ? '...' : loanSummary.total}</div>
+                    <div className="stat-label">Total Purchases</div>
+                  </div>
+                </div>
+
+                <div className="quick-stat">
+                  <div className="stat-icon active-loans">
+                    <TrendingUp size={20} />
+                  </div>
+                  <div className="stat-content">
+                    <div className="stat-value">{loansLoading ? '...' : loanSummary.active}</div>
+                    <div className="stat-label">Active Purchases</div>
+                  </div>
+                </div>
+
+                <div className="quick-stat">
+                  <div className="stat-icon pending-loans">
+                    <Activity size={20} />
+                  </div>
+                  <div className="stat-content">
+                    <div className="stat-value">{loansLoading ? '...' : loanSummary.pending}</div>
+                    <div className="stat-label">Pending</div>
+                  </div>
+                </div>
+
+                <div className="quick-stat">
+                  <div className="stat-icon borrowed-amount">
+                    <DollarSign size={20} />
+                  </div>
+                  <div className="stat-content">
+                    <div className="stat-value">
+                      {loansLoading ? '...' : `$${loanSummary.totalBorrowed.toLocaleString()}`}
+                    </div>
+                    <div className="stat-label">Total Borrowed</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="loans-quick-actions">
+                <button 
+                  className="quick-action-btn primary"
+                  onClick={() => navigate('/loans')}
+                >
+                  <Plus size={16} />
+                  Apply for New Purchase
+                </button>
+                
+                <button 
+                  className="quick-action-btn secondary"
+                  onClick={() => navigate('/loans')}
+                >
+                  <Eye size={16} />
+                  Manage Existing Purchase
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Features Section */}
           {isAuthenticated ? (
             <div className="features-section">
               <h2 className="section-title">BNPL Features</h2>
               <div className="features-grid">
                 {features.map((feature) => (
-                  <div
+                  <div 
                     key={feature.id}
-                    className={`feature-card ${
-                      activeFeature === feature.id ? "active" : ""
-                    }`}
+                    className={`feature-card ${activeFeature === feature.id ? 'active' : ''}`}
                     onMouseEnter={() => setActiveFeature(feature.id)}
                     onMouseLeave={() => setActiveFeature(null)}
                   >
@@ -321,13 +381,9 @@ const Dashboard: React.FC = () => {
                         </div>
                       )}
                     </div>
-
                     <div className="feature-content">
                       <h3 className="feature-title">{feature.title}</h3>
-                      <p className="feature-description">
-                        {feature.description}
-                      </p>
-
+                      <p className="feature-description">{feature.description}</p>
                       <div className="feature-benefits">
                         {feature.benefits.map((benefit, index) => (
                           <div key={index} className="benefit-item">
@@ -336,18 +392,15 @@ const Dashboard: React.FC = () => {
                           </div>
                         ))}
                       </div>
+                      <button
+                        className={`feature-btn ${feature.comingSoon ? "disabled" : ""}`}
+                        disabled={feature.comingSoon}
+                        onClick={feature.comingSoon ? undefined : feature.action}
+                      >
+                        {feature.comingSoon ? "Coming Soon" : "Get Started"}
+                        <ArrowRight size={16} />
+                      </button>
                     </div>
-
-                    <button
-                      className={`feature-btn ${
-                        feature.comingSoon ? "disabled" : ""
-                      }`}
-                      disabled={feature.comingSoon}
-                      onClick={feature.comingSoon ? undefined : feature.action}
-                    >
-                      {feature.comingSoon ? "Coming Soon" : "Get Started"}
-                      <ArrowRight size={16} />
-                    </button>
                   </div>
                 ))}
               </div>
@@ -357,41 +410,8 @@ const Dashboard: React.FC = () => {
               <div className="auth-prompt-content">
                 <h2>Get Started with ForwarDefi</h2>
                 <p>
-                  Join thousands of users who trust ForwarDefi for their crypto
-                  lending needs. Sign up now to access exclusive BNPL features.
+                  Join thousands of users who trust ForwarDefi for their crypto lending needs. Sign up now to access exclusive BNPL features.
                 </p>
-
-                <div className="auth-benefits">
-                  <div className="benefit">
-                    <Shield size={20} />
-                    <div>
-                      <h4>Secure & Decentralized</h4>
-                      <p>Built on Avalanche blockchain</p>
-                    </div>
-                  </div>
-                  <div className="benefit">
-                    <Zap size={20} />
-                    <div>
-                      <h4>Instant Processing</h4>
-                      <p>Get loans approved in minutes</p>
-                    </div>
-                  </div>
-                  <div className="benefit">
-                    <Target size={20} />
-                    <div>
-                      <h4>Competitive Rates</h4>
-                      <p>Best rates in DeFi market</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="auth-prompt-content">
-                <h2>Get Started with ForwarDefi</h2>
-                <p>
-                  Join thousands of users who trust ForwarDefi for their crypto
-                  lending needs. Sign up now to access exclusive BNPL features.
-                </p>
-
                 <div className="auth-benefits">
                   <div className="benefit">
                     <Shield size={20} />
