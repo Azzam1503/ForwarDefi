@@ -22,7 +22,7 @@ import '../../styles/loan-details.css';
 interface PurchaseDetailsProps {
   loanId: string;
   onBack?: () => void;
-  onEdit?: (loan: Loan) => void;
+  onEdit?: (loan: LoanTypes.Loan) => void;
   onDelete?: (loanId: string) => void;
 }
 
@@ -94,7 +94,7 @@ const PurchaseDetails: React.FC<PurchaseDetailsProps> = ({ loanId, onBack, onEdi
     }
   };
 
-  const calculatePurchaseMetrics = (loan: Loan) => {
+  const calculatePurchaseMetrics = (loan: LoanTypes.Loan) => {
     const monthlyRate = loan.interest_rate / 100 / 12;
     const estimatedTerm = 12; // Default term, could be stored in loan entity
     const monthlyPayment = (loan.amount * monthlyRate * Math.pow(1 + monthlyRate, estimatedTerm)) / (Math.pow(1 + monthlyRate, estimatedTerm) - 1);

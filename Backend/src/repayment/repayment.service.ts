@@ -6,6 +6,13 @@ import { CreateRepaymentDto } from './dto/create-repayment.dto';
 import { UpdateRepaymentDto } from './dto/update-repayment.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { CustomLogger } from 'src/core/logger/logger.service';
+import { DefiPaymentsService } from 'src/defi_payments/defi_payments.service';
+import { TransactionService } from 'src/transaction/transaction.service';
+import { UserService } from 'src/user/user.service';
+import {
+  TransactionType,
+  TransactionSubtype,
+} from 'src/transaction/entities/transaction.entity';
 
 @Injectable()
 export class RepaymentService {
@@ -13,16 +20,16 @@ export class RepaymentService {
     @InjectRepository(Repayment)
     private readonly repaymentRepository: Repository<Repayment>,
     private readonly logger: CustomLogger,
+    private readonly defiPaymentsService: DefiPaymentsService,
+    private readonly transactionService: TransactionService,
+    private readonly userService: UserService,
   ) {}
 
   private generateId(): string {
     return uuidv4().replace(/-/g, '');
   }
 
-  async create(
-    correlation_id: string,
-    createRepaymentDto: CreateRepaymentDto,
-  ): Promise<Repayment> {
+  async create(correlation_id: string, createRepaymentDto: CreateRepaymentDto) {
     this.logger.setContext(this.constructor.name + '/create');
     this.logger.debug(correlation_id, 'Starting repayment creation process');
 
@@ -46,10 +53,13 @@ export class RepaymentService {
       `Repayment created successfully with ID: ${repayment_id}`,
     );
 
-    return savedRepayment;
+    return {
+      message: 'Repayment created successfully',
+      data: savedRepayment,
+    };
   }
 
-  async findAll(correlation_id: string): Promise<Repayment[]> {
+  async findAll(correlation_id: string) {
     this.logger.setContext(this.constructor.name + '/findAll');
     this.logger.debug(correlation_id, 'Fetching all repayments');
 
@@ -58,13 +68,13 @@ export class RepaymentService {
     });
 
     this.logger.debug(correlation_id, `Found ${repayments.length} repayments`);
-    return repayments;
+    return {
+      message: 'Repayments retrieved successfully',
+      data: repayments,
+    };
   }
 
-  async findOne(
-    correlation_id: string,
-    repayment_id: string,
-  ): Promise<Repayment | null> {
+  async findOne(correlation_id: string, repayment_id: string) {
     this.logger.setContext(this.constructor.name + '/findOne');
     this.logger.debug(
       correlation_id,
@@ -80,17 +90,20 @@ export class RepaymentService {
         correlation_id,
         `Repayment found successfully: ${repayment_id}`,
       );
+      return {
+        message: 'Repayment found successfully',
+        data: repayment,
+      };
     } else {
       this.logger.debug(correlation_id, `Repayment not found: ${repayment_id}`);
+      return {
+        message: 'Repayment not found',
+        data: null,
+      };
     }
-
-    return repayment;
   }
 
-  async findByLoanId(
-    correlation_id: string,
-    loan_id: string,
-  ): Promise<Repayment[]> {
+  async findByLoanId(correlation_id: string, loan_id: string) {
     this.logger.setContext(this.constructor.name + '/findByLoanId');
     this.logger.debug(
       correlation_id,
@@ -106,14 +119,17 @@ export class RepaymentService {
       correlation_id,
       `Found ${repayments.length} repayments for loan: ${loan_id}`,
     );
-    return repayments;
+    return {
+      message: 'Loan repayments retrieved successfully',
+      data: repayments,
+    };
   }
 
   async update(
     correlation_id: string,
     repayment_id: string,
     updateRepaymentDto: UpdateRepaymentDto,
-  ): Promise<Repayment | null> {
+  ) {
     this.logger.setContext(this.constructor.name + '/update');
     this.logger.debug(correlation_id, `Updating repayment ID: ${repayment_id}`);
 
@@ -131,13 +147,14 @@ export class RepaymentService {
       `Repayment updated successfully: ${repayment_id}`,
     );
 
-    return await this.findOne(correlation_id, repayment_id);
+    const result = await this.findOne(correlation_id, repayment_id);
+    return {
+      message: 'Repayment updated successfully',
+      data: result.data,
+    };
   }
 
-  async markAsPaid(
-    correlation_id: string,
-    repayment_id: string,
-  ): Promise<Repayment | null> {
+  async markAsPaid(correlation_id: string, repayment_id: string) {
     this.logger.setContext(this.constructor.name + '/markAsPaid');
     this.logger.debug(
       correlation_id,
@@ -153,10 +170,14 @@ export class RepaymentService {
       `Repayment marked as paid successfully: ${repayment_id}`,
     );
 
-    return await this.findOne(correlation_id, repayment_id);
+    const result = await this.findOne(correlation_id, repayment_id);
+    return {
+      message: 'Repayment marked as paid successfully',
+      data: result.data,
+    };
   }
 
-  async remove(correlation_id: string, repayment_id: string): Promise<void> {
+  async remove(correlation_id: string, repayment_id: string) {
     this.logger.setContext(this.constructor.name + '/remove');
     this.logger.debug(correlation_id, `Deleting repayment ID: ${repayment_id}`);
 
@@ -165,5 +186,151 @@ export class RepaymentService {
       correlation_id,
       `Repayment deleted successfully: ${repayment_id}`,
     );
+
+    return {
+      message: 'Repayment deleted successfully',
+      data: null,
+    };
+  }
+
+  async processBlockchainRepayment(
+    correlation_id: string,
+    orderId: number,
+    amount: number,
+    user_id: string,
+    loan_id: string,
+  ) {
+    this.logger.setContext(
+      this.constructor.name + '/processBlockchainRepayment',
+    );
+    this.logger.debug(
+      correlation_id,
+      `Processing blockchain repayment for order: ${orderId}`,
+    );
+
+    try {
+      // Try to get user's wallet address (optional)
+      let buyerAddress: string | null = null;
+      try {
+        buyerAddress = await this.userService.getWalletAddress(
+          correlation_id,
+          user_id,
+        );
+      } catch (error) {
+        this.logger.warn(
+          correlation_id,
+          `Could not get user wallet address: ${error.message}`,
+        );
+      }
+
+      // If we have a wallet address, try blockchain integration
+      if (buyerAddress) {
+        try {
+          // Process repayment on blockchain using DefiPaymentsService
+          const repayInstallmentDto = {
+            orderId: orderId.toString(),
+            amount: (amount * 1000000).toString(), // Convert to USDC units (6 decimals)
+          };
+
+          const txHash = await this.defiPaymentsService.repayInstallment(
+            correlation_id,
+            repayInstallmentDto,
+          );
+
+          // Create repayment record in database
+          const repayment_id = this.generateId();
+          const repayment = this.repaymentRepository.create({
+            repayment_id,
+            loan_id,
+            amount,
+            due_date: new Date(),
+            status: RepaymentStatus.PAID,
+            paid_date: new Date(),
+            blockchain_tx_hash: txHash,
+          });
+
+          const savedRepayment = await this.repaymentRepository.save(repayment);
+
+          // Record blockchain transaction
+          await this.transactionService.create(correlation_id, {
+            user_id,
+            loan_id,
+            type: TransactionType.BLOCKCHAIN_REPAYMENT,
+            subtype: TransactionSubtype.CREDIT,
+            amount,
+            tx_hash: txHash,
+            blockchain_order_id: orderId.toString(),
+            blockchain_status: 'CONFIRMED',
+          });
+
+          this.logger.debug(
+            correlation_id,
+            `Blockchain repayment processed successfully for order: ${orderId}`,
+          );
+
+          return {
+            message: 'Repayment processed successfully on blockchain',
+            data: {
+              ...savedRepayment,
+              blockchain_tx_hash: txHash,
+              blockchain_order_id: orderId,
+            },
+          };
+        } catch (blockchainError) {
+          this.logger.error(
+            correlation_id,
+            `Blockchain repayment failed: ${blockchainError.message}`,
+          );
+
+          // Record failed transaction
+          await this.transactionService.create(correlation_id, {
+            user_id,
+            loan_id,
+            type: TransactionType.BLOCKCHAIN_REPAYMENT,
+            subtype: TransactionSubtype.CREDIT,
+            amount,
+            blockchain_order_id: orderId.toString(),
+            blockchain_status: 'FAILED',
+          });
+
+          // Continue with database-only repayment creation
+          this.logger.debug(
+            correlation_id,
+            'Continuing with database-only repayment creation',
+          );
+        }
+      }
+
+      // If no wallet address or blockchain failed, create repayment in database only
+      const repayment_id = this.generateId();
+      const repayment = this.repaymentRepository.create({
+        repayment_id,
+        loan_id,
+        amount,
+        due_date: new Date(),
+        status: RepaymentStatus.PAID,
+        paid_date: new Date(),
+      });
+
+      const savedRepayment = await this.repaymentRepository.save(repayment);
+
+      this.logger.debug(
+        correlation_id,
+        `Repayment created in database only for order: ${orderId}`,
+      );
+
+      return {
+        message: buyerAddress
+          ? 'Repayment created in database (blockchain integration failed)'
+          : 'Repayment created in database (no wallet address available)',
+        data: savedRepayment,
+      };
+    } catch (error) {
+      this.logger.error(
+        correlation_id,
+        `Error in blockchain repayment process: ${error.message}`,
+      );
+      throw error;
+    }
   }
 }

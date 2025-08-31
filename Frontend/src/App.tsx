@@ -27,7 +27,7 @@ const PageWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   return (
     <PageTransition
-      stage={transitionStage}
+      stage={transitionStage as "fadeIn" | "fadeOut"}
       onAnimationEnd={() => {
         if (transitionStage === "fadeOut") {
           setDisplayLocation(location);
@@ -73,7 +73,7 @@ function App() {
           </div>
           <Header />
           <main className="main-content">
-            <PageWrapper />
+            <PageWrapper children={undefined} />
           </main>
           <footer className="app-footer">
             <div className="footer-content">

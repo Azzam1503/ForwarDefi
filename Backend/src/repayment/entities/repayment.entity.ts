@@ -35,6 +35,9 @@ export class Repayment {
   })
   status: RepaymentStatus;
 
+  @Column('varchar', { length: 66, nullable: true })
+  blockchain_tx_hash: string;
+
   @CreateDateColumn()
   created_at: Date;
 

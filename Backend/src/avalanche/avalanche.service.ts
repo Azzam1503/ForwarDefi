@@ -186,7 +186,7 @@ export class AvalancheService {
   /**
    * Main method to get transactions for a wallet address
    */
-  async getTransactions(walletAddress: string): Promise<TransactionSummaryDto> {
+  async getTransactions(walletAddress: string) {
     // Validate wallet address
     if (!this.validateWalletAddress(walletAddress)) {
       throw new HttpException(
@@ -240,7 +240,14 @@ export class AvalancheService {
       }
 
       // Calculate and return summary
-      return this.calculateTransactionSummary(transactions, walletAddress);
+      const summary = this.calculateTransactionSummary(
+        transactions,
+        walletAddress,
+      );
+      return {
+        message: 'Wallet transactions retrieved successfully',
+        data: summary,
+      };
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
@@ -259,10 +266,13 @@ export class AvalancheService {
   /**
    * Health check method for the Avalanche service
    */
-  async healthCheck(): Promise<{ status: string; timestamp: string }> {
+  async healthCheck() {
     return {
-      status: 'healthy',
-      timestamp: new Date().toISOString(),
+      message: 'Avalanche service is healthy',
+      data: {
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+      },
     };
   }
 }

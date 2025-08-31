@@ -5,6 +5,9 @@ export enum TransactionType {
   REPAYMENT = 'REPAYMENT',
   COLLATERAL_DEPOSIT = 'COLLATERAL_DEPOSIT',
   COLLATERAL_LIQUIDATION = 'COLLATERAL_LIQUIDATION',
+  BLOCKCHAIN_ORDER_CREATION = 'BLOCKCHAIN_ORDER_CREATION',
+  BLOCKCHAIN_REPAYMENT = 'BLOCKCHAIN_REPAYMENT',
+  BLOCKCHAIN_LIQUIDATION = 'BLOCKCHAIN_LIQUIDATION',
 }
 
 export enum TransactionSubtype {
@@ -40,6 +43,22 @@ export class Transaction {
 
   @Column('varchar', { length: 66, nullable: true })
   tx_hash: string;
+
+  @Column('varchar', { length: 36, nullable: true })
+  blockchain_order_id: string;
+
+  @Column('enum', {
+    enum: ['PENDING', 'CONFIRMED', 'FAILED'],
+    default: 'PENDING',
+    nullable: true,
+  })
+  blockchain_status: string;
+
+  @Column('decimal', { precision: 18, scale: 2, nullable: true })
+  gas_used: number;
+
+  @Column('int', { nullable: true })
+  block_number: number;
 
   @CreateDateColumn()
   created_at: Date;

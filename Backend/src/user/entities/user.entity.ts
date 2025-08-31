@@ -23,6 +23,9 @@ export class User {
   @Column('varchar', { nullable: true, default: null })
   phone_number: string;
 
+  @Column('varchar', { length: 42, nullable: true })
+  wallet_address: string;
+
   @Column('varchar', { nullable: false })
   password: string; // hashed
 
