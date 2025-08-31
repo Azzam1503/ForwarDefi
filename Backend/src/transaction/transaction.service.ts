@@ -21,7 +21,7 @@ export class TransactionService {
   async create(
     correlation_id: string,
     createTransactionDto: CreateTransactionDto,
-  ): Promise<Transaction> {
+  ) {
     this.logger.setContext(this.constructor.name + '/create');
     this.logger.debug(correlation_id, 'Starting transaction creation process');
 
@@ -40,10 +40,13 @@ export class TransactionService {
       `Transaction created successfully with ID: ${tx_id}`,
     );
 
-    return savedTransaction;
+    return {
+      message: 'Transaction created successfully',
+      data: savedTransaction,
+    };
   }
 
-  async findAll(correlation_id: string): Promise<Transaction[]> {
+  async findAll(correlation_id: string) {
     this.logger.setContext(this.constructor.name + '/findAll');
     this.logger.debug(correlation_id, 'Fetching all transactions');
 
@@ -55,13 +58,13 @@ export class TransactionService {
       correlation_id,
       `Found ${transactions.length} transactions`,
     );
-    return transactions;
+    return {
+      message: 'Transactions retrieved successfully',
+      data: transactions,
+    };
   }
 
-  async findOne(
-    correlation_id: string,
-    tx_id: string,
-  ): Promise<Transaction | null> {
+  async findOne(correlation_id: string, tx_id: string) {
     this.logger.setContext(this.constructor.name + '/findOne');
     this.logger.debug(correlation_id, `Finding transaction by ID: ${tx_id}`);
 
@@ -74,17 +77,20 @@ export class TransactionService {
         correlation_id,
         `Transaction found successfully: ${tx_id}`,
       );
+      return {
+        message: 'Transaction found successfully',
+        data: transaction,
+      };
     } else {
       this.logger.debug(correlation_id, `Transaction not found: ${tx_id}`);
+      return {
+        message: 'Transaction not found',
+        data: null,
+      };
     }
-
-    return transaction;
   }
 
-  async findByUserId(
-    correlation_id: string,
-    user_id: string,
-  ): Promise<Transaction[]> {
+  async findByUserId(correlation_id: string, user_id: string) {
     this.logger.setContext(this.constructor.name + '/findByUserId');
     this.logger.debug(
       correlation_id,
@@ -100,13 +106,13 @@ export class TransactionService {
       correlation_id,
       `Found ${transactions.length} transactions for user: ${user_id}`,
     );
-    return transactions;
+    return {
+      message: 'User transactions retrieved successfully',
+      data: transactions,
+    };
   }
 
-  async findByLoanId(
-    correlation_id: string,
-    loan_id: string,
-  ): Promise<Transaction[]> {
+  async findByLoanId(correlation_id: string, loan_id: string) {
     this.logger.setContext(this.constructor.name + '/findByLoanId');
     this.logger.debug(
       correlation_id,
@@ -122,10 +128,13 @@ export class TransactionService {
       correlation_id,
       `Found ${transactions.length} transactions for loan: ${loan_id}`,
     );
-    return transactions;
+    return {
+      message: 'Loan transactions retrieved successfully',
+      data: transactions,
+    };
   }
 
-  async remove(correlation_id: string, tx_id: string): Promise<void> {
+  async remove(correlation_id: string, tx_id: string) {
     this.logger.setContext(this.constructor.name + '/remove');
     this.logger.debug(correlation_id, `Deleting transaction ID: ${tx_id}`);
 
@@ -134,5 +143,10 @@ export class TransactionService {
       correlation_id,
       `Transaction deleted successfully: ${tx_id}`,
     );
+
+    return {
+      message: 'Transaction deleted successfully',
+      data: null,
+    };
   }
 }
