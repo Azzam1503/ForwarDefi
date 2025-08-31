@@ -17,12 +17,12 @@ import {
 } from 'lucide-react';
 import '../../styles/loan-application.css';
 
-interface LoanApplicationFormProps {
+interface PurchaseApplicationFormProps {
   onSuccess?: (loanId: string) => void;
   onCancel?: () => void;
 }
 
-const LoanApplicationForm: React.FC<LoanApplicationFormProps> = ({ onSuccess, onCancel }) => {
+const PurchaseApplicationForm: React.FC<PurchaseApplicationFormProps> = ({ onSuccess, onCancel }) => {
   const { user } = useAuth();
   const { address } = useAccount();
   const { data: balance } = useBalance({ address });
@@ -41,7 +41,7 @@ const LoanApplicationForm: React.FC<LoanApplicationFormProps> = ({ onSuccess, on
   const [submitError, setSubmitError] = useState<string>('');
   const [loading, setLoading] = useState(false);
 
-  // Calculate loan terms in real-time
+  // Calculate purchase terms in real-time
   useEffect(() => {
     if (formData.amount && formData.requestedTerm && formData.collateralRatio) {
       const amount = parseFloat(formData.amount);
@@ -89,11 +89,11 @@ const LoanApplicationForm: React.FC<LoanApplicationFormProps> = ({ onSuccess, on
     // Amount validation
     const amount = parseFloat(formData.amount);
     if (!formData.amount || amount <= 0) {
-      newErrors.amount = 'Please enter a valid loan amount';
+      newErrors.amount = 'Please enter a valid purchase amount';
     } else if (amount < 100) {
-      newErrors.amount = 'Minimum loan amount is $100';
+      newErrors.amount = 'Minimum purchase amount is $100';
     } else if (amount > 100000) {
-      newErrors.amount = 'Maximum loan amount is $100,000';
+      newErrors.amount = 'Maximum purchase amount is $100,000';
     }
 
     // Collateral validation
@@ -107,7 +107,7 @@ const LoanApplicationForm: React.FC<LoanApplicationFormProps> = ({ onSuccess, on
     // Term validation
     const term = parseInt(formData.requestedTerm);
     if (term < 1 || term > 60) {
-      newErrors.requestedTerm = 'Loan term must be between 1 and 60 months';
+      newErrors.requestedTerm = 'Payment term must be between 1 and 60 months';
     }
 
     // Wallet validation
@@ -165,7 +165,7 @@ const LoanApplicationForm: React.FC<LoanApplicationFormProps> = ({ onSuccess, on
         onSuccess(response.data.loan_id);
       }
     } catch (error: any) {
-      setSubmitError(error.message || 'Failed to submit loan application');
+      setSubmitError(error.message || 'Failed to submit purchase application');
       setStep('review');
     } finally {
       setLoading(false);
@@ -186,13 +186,13 @@ const LoanApplicationForm: React.FC<LoanApplicationFormProps> = ({ onSuccess, on
   return (
     <div className="loan-application-form">
       <div className="form-header">
-        <h2>Apply for a Loan</h2>
-        <p>Get instant access to crypto-backed lending</p>
+        <h2>Apply for Buy Now Pay Later</h2>
+        <p>Get instant access to crypto-backed purchases</p>
         
         <div className="progress-steps">
           <div className={`step ${step === 'form' ? 'active' : ['calculation', 'review', 'submitting'].includes(step) ? 'completed' : ''}`}>
             <div className="step-number">1</div>
-            <span>Loan Details</span>
+            <span>Purchase Details</span>
           </div>
           <div className={`step ${step === 'calculation' ? 'active' : step === 'review' || step === 'submitting' ? 'completed' : ''}`}>
             <div className="step-number">2</div>
@@ -208,13 +208,13 @@ const LoanApplicationForm: React.FC<LoanApplicationFormProps> = ({ onSuccess, on
       <div className="form-content">
         {step === 'form' && (
           <div className="form-step">
-            <h3>Loan Application Details</h3>
+            <h3>Purchase Application Details</h3>
             
             <div className="form-grid">
               <div className="form-group">
                 <label htmlFor="amount">
                   <DollarSign size={16} />
-                  Loan Amount (USD)
+                  Purchase Amount (USD)
                 </label>
                 <input
                   id="amount"
@@ -232,7 +232,7 @@ const LoanApplicationForm: React.FC<LoanApplicationFormProps> = ({ onSuccess, on
               <div className="form-group">
                 <label htmlFor="term">
                   <Clock size={16} />
-                  Loan Term (Months)
+                  Payment Term (Months)
                 </label>
                 <select
                   id="term"
@@ -337,7 +337,7 @@ const LoanApplicationForm: React.FC<LoanApplicationFormProps> = ({ onSuccess, on
 
         {step === 'calculation' && calculation && (
           <div className="calculation-step">
-            <h3>Loan Calculation</h3>
+            <h3>Purchase Calculation</h3>
             
             <div className="calculation-grid">
               <div className="calc-card primary">
@@ -374,10 +374,10 @@ const LoanApplicationForm: React.FC<LoanApplicationFormProps> = ({ onSuccess, on
             </div>
 
             <div className="loan-summary">
-              <h4>Loan Summary</h4>
+              <h4>Purchase Summary</h4>
               <div className="summary-items">
                 <div className="summary-item">
-                  <span>Loan Amount:</span>
+                  <span>Purchase Amount:</span>
                   <span>{formatCurrency(calculation.loanAmount)}</span>
                 </div>
                 <div className="summary-item">
@@ -417,7 +417,7 @@ const LoanApplicationForm: React.FC<LoanApplicationFormProps> = ({ onSuccess, on
               </div>
 
               <div className="review-section">
-                <h4>Loan Terms</h4>
+                <h4>Purchase Terms</h4>
                 <div className="review-items">
                   <div className="review-item">
                     <span>Interest Rate:</span>
@@ -475,7 +475,7 @@ const LoanApplicationForm: React.FC<LoanApplicationFormProps> = ({ onSuccess, on
             <div className="submitting-content">
               <div className="spinner"></div>
               <h3>Submitting Your Application</h3>
-              <p>Please wait while we process your loan application...</p>
+              <p>Please wait while we process your purchase application...</p>
             </div>
           </div>
         )}
@@ -529,4 +529,4 @@ const LoanApplicationForm: React.FC<LoanApplicationFormProps> = ({ onSuccess, on
   );
 };
 
-export default LoanApplicationForm;
+export default PurchaseApplicationForm;

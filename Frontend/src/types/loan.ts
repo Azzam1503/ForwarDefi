@@ -1,4 +1,4 @@
-// Loan Type Definitions
+// Purchase Type Definitions
 // Matching backend entities and DTOs
 
 export enum LoanStatus {
@@ -92,7 +92,7 @@ export const LoanStatusColors = {
   [LoanStatus.REPAID]: {
     bg: 'rgba(34, 197, 94, 0.2)',
     color: '#22c55e',
-    text: 'Repaid'
+    text: 'Completed'
   },
   [LoanStatus.DEFAULTED]: {
     bg: 'rgba(239, 68, 68, 0.2)',

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import LoanApplicationForm from './LoanApplicationForm';
-import LoansList from './LoansList';
-import LoanDetails from './LoanDetails';
+import PurchaseApplicationForm from './LoanApplicationForm';
+import PurchasesList from './LoansList';
+import PurchaseDetails from './LoanDetails';
 import { 
   ArrowLeft,
   CheckCircle,
@@ -10,10 +10,10 @@ import {
   CreditCard
 } from 'lucide-react';
 
-type LoanView = 'list' | 'create' | 'details';
+type PurchaseView = 'list' | 'create' | 'details';
 
-interface LoanState {
-  view: LoanView;
+interface PurchaseState {
+  view: PurchaseView;
   selectedLoanId?: string;
   message?: {
     type: 'success' | 'error';
@@ -22,13 +22,13 @@ interface LoanState {
   };
 }
 
-const Loans: React.FC = () => {
+const Purchases: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
-  const [state, setState] = useState<LoanState>({
+  const [state, setState] = useState<PurchaseState>({
     view: 'list'
   });
 
-  const handleCreateLoan = () => {
+  const handleCreatePurchase = () => {
     setState(prev => ({
       ...prev,
       view: 'create',
@@ -36,7 +36,7 @@ const Loans: React.FC = () => {
     }));
   };
 
-  const handleViewLoan = (loanId: string) => {
+  const handleViewPurchase = (loanId: string) => {
     setState(prev => ({
       ...prev,
       view: 'details',
@@ -45,7 +45,7 @@ const Loans: React.FC = () => {
     }));
   };
 
-  const handleLoanCreated = (loanId: string) => {
+  const handlePurchaseCreated = (loanId: string) => {
     setState(prev => ({
       ...prev,
       view: 'details',
@@ -53,7 +53,7 @@ const Loans: React.FC = () => {
       message: {
         type: 'success',
         title: 'Application Submitted!',
-        content: 'Your loan application has been submitted successfully and is now under review.'
+        content: 'Your purchase application has been submitted successfully and is now under review.'
       }
     }));
   };
@@ -75,7 +75,7 @@ const Loans: React.FC = () => {
     }));
   };
 
-  const handleDeleteLoan = async (loanId: string) => {
+  const handleDeletePurchase = async (loanId: string) => {
     // This would typically show a confirmation dialog
     try {
       // await loanApi.deleteLoan(loanId);
@@ -85,8 +85,8 @@ const Loans: React.FC = () => {
         selectedLoanId: undefined,
         message: {
           type: 'success',
-          title: 'Loan Deleted',
-          content: 'The loan application has been deleted successfully.'
+          title: 'Purchase Deleted',
+          content: 'The purchase application has been deleted successfully.'
         }
       }));
     } catch (error) {
@@ -95,7 +95,7 @@ const Loans: React.FC = () => {
         message: {
           type: 'error',
           title: 'Delete Failed',
-          content: 'Failed to delete the loan application. Please try again.'
+          content: 'Failed to delete the purchase application. Please try again.'
         }
       }));
     }
@@ -114,7 +114,7 @@ const Loans: React.FC = () => {
         <div className="unauthorized-content">
           <CreditCard size={64} />
           <h2>Authentication Required</h2>
-          <p>Please sign in to access loan features and manage your applications.</p>
+          <p>Please sign in to access purchase features and manage your applications.</p>
         </div>
       </div>
     );
@@ -147,7 +147,7 @@ const Loans: React.FC = () => {
       {/* Navigation Breadcrumb */}
       <div className="loans-breadcrumb">
         <div className="breadcrumb-content">
-          <span className="breadcrumb-item">Loans</span>
+          <span className="breadcrumb-item">Purchases</span>
           {state.view === 'create' && (
             <>
               <span className="breadcrumb-separator">›</span>
@@ -157,7 +157,7 @@ const Loans: React.FC = () => {
           {state.view === 'details' && (
             <>
               <span className="breadcrumb-separator">›</span>
-              <span className="breadcrumb-item active">Loan Details</span>
+              <span className="breadcrumb-item active">Purchase Details</span>
             </>
           )}
         </div>
@@ -166,24 +166,24 @@ const Loans: React.FC = () => {
       {/* Main Content */}
       <div className="loans-main">
         {state.view === 'list' && (
-          <LoansList
-            onCreateLoan={handleCreateLoan}
-            onViewLoan={handleViewLoan}
+          <PurchasesList
+            onCreatePurchase={handleCreatePurchase}
+            onViewPurchase={handleViewPurchase}
           />
         )}
 
         {state.view === 'create' && (
-          <LoanApplicationForm
-            onSuccess={handleLoanCreated}
+          <PurchaseApplicationForm
+            onSuccess={handlePurchaseCreated}
             onCancel={handleCancelCreate}
           />
         )}
 
         {state.view === 'details' && state.selectedLoanId && (
-          <LoanDetails
+          <PurchaseDetails
             loanId={state.selectedLoanId}
             onBack={handleBackToList}
-            onDelete={handleDeleteLoan}
+            onDelete={handleDeletePurchase}
           />
         )}
       </div>
@@ -191,4 +191,4 @@ const Loans: React.FC = () => {
   );
 };
 
-export default Loans;
+export default Purchases;

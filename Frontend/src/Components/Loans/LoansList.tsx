@@ -18,12 +18,12 @@ import {
   MoreHorizontal
 } from 'lucide-react';
 
-interface LoansListProps {
-  onCreateLoan?: () => void;
-  onViewLoan?: (loanId: string) => void;
+interface PurchasesListProps {
+  onCreatePurchase?: () => void;
+  onViewPurchase?: (loanId: string) => void;
 }
 
-const LoansList: React.FC<LoansListProps> = ({ onCreateLoan, onViewLoan }) => {
+const PurchasesList: React.FC<PurchasesListProps> = ({ onCreatePurchase, onViewPurchase }) => {
   const { user } = useAuth();
   const [loans, setLoans] = useState<LoanTypes.Loan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,11 +35,11 @@ const LoansList: React.FC<LoansListProps> = ({ onCreateLoan, onViewLoan }) => {
 
   useEffect(() => {
     if (user) {
-      fetchUserLoans();
+      fetchUserPurchases();
     }
   }, [user]);
 
-  const fetchUserLoans = async () => {
+  const fetchUserPurchases = async () => {
     if (!user) return;
 
     setLoading(true);
@@ -49,14 +49,14 @@ const LoansList: React.FC<LoansListProps> = ({ onCreateLoan, onViewLoan }) => {
       const response = await loanApi.getUserLoans(user.id);
       setLoans(response.data);
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch loans');
+      setError(err.message || 'Failed to fetch purchases');
     } finally {
       setLoading(false);
     }
   };
 
   const handleRefresh = () => {
-    fetchUserLoans();
+    fetchUserPurchases();
   };
 
   const handleSort = (field: 'date' | 'amount' | 'status') => {
@@ -68,7 +68,7 @@ const LoansList: React.FC<LoansListProps> = ({ onCreateLoan, onViewLoan }) => {
     }
   };
 
-  const filteredAndSortedLoans = useMemo(() => {
+  const filteredAndSortedPurchases = useMemo(() => {
     return loans
       .filter(loan => {
         // Status filter
@@ -139,13 +139,13 @@ const LoansList: React.FC<LoansListProps> = ({ onCreateLoan, onViewLoan }) => {
     }
   };
 
-  const loanSummary = useMemo(() => {
+  const purchaseSummary = useMemo(() => {
     return {
       total: loans.length,
       active: loans.filter(l => l.status === LoanTypes.LoanStatus.ACTIVE).length,
       pending: loans.filter(l => l.status === LoanTypes.LoanStatus.PENDING).length,
       repaid: loans.filter(l => l.status === LoanTypes.LoanStatus.REPAID).length,
-      totalBorrowed: loans.reduce((sum, loan) => {
+      totalPurchased: loans.reduce((sum, loan) => {
         if (loan.status === LoanTypes.LoanStatus.ACTIVE || loan.status === LoanTypes.LoanStatus.REPAID) {
           return sum + loan.amount;
         }
@@ -165,7 +165,7 @@ const LoansList: React.FC<LoansListProps> = ({ onCreateLoan, onViewLoan }) => {
         <div className="unauthorized-content">
           <AlertCircle size={48} />
           <h3>Authentication Required</h3>
-          <p>Please sign in to view your loans</p>
+          <p>Please sign in to view your purchases</p>
         </div>
       </div>
     );
@@ -176,8 +176,8 @@ const LoansList: React.FC<LoansListProps> = ({ onCreateLoan, onViewLoan }) => {
       {/* Header Section */}
       <div className="loans-header">
         <div className="header-content">
-          <h2>My Loans</h2>
-          <p>Manage your loan applications and active loans</p>
+          <h2>My Purchases</h2>
+          <p>Manage your purchase applications and active purchases</p>
         </div>
         
         <div className="header-actions">
@@ -185,21 +185,21 @@ const LoansList: React.FC<LoansListProps> = ({ onCreateLoan, onViewLoan }) => {
             className="btn-refresh" 
             onClick={handleRefresh} 
             disabled={loading}
-            title="Refresh loans"
+            title="Refresh purchases"
           >
             <RefreshCw size={16} className={loading ? 'spinning' : ''} />
             Refresh
           </button>
-          {onCreateLoan && (
-            <button className="btn-primary" onClick={onCreateLoan}>
+          {onCreatePurchase && (
+            <button className="btn-primary" onClick={onCreatePurchase}>
               <Plus size={16} />
-              New Loan
+              New Purchase
             </button>
           )}
         </div>
       </div>
 
-      {/* Loan Summary Cards */}
+      {/* Purchase Summary Cards */}
       <div className="loans-summary">
         <div className="summary-cards">
           <div className="summary-card">
@@ -207,8 +207,8 @@ const LoansList: React.FC<LoansListProps> = ({ onCreateLoan, onViewLoan }) => {
               <DollarSign size={24} />
             </div>
             <div className="summary-content">
-              <div className="summary-value">{loanSummary.total}</div>
-              <div className="summary-label">Total Loans</div>
+              <div className="summary-value">{purchaseSummary.total}</div>
+              <div className="summary-label">Total Purchases</div>
             </div>
           </div>
 
@@ -217,8 +217,8 @@ const LoansList: React.FC<LoansListProps> = ({ onCreateLoan, onViewLoan }) => {
               <TrendingUp size={24} />
             </div>
             <div className="summary-content">
-              <div className="summary-value">{loanSummary.active}</div>
-              <div className="summary-label">Active Loans</div>
+              <div className="summary-value">{purchaseSummary.active}</div>
+              <div className="summary-label">Active Purchases</div>
             </div>
           </div>
 
@@ -227,7 +227,7 @@ const LoansList: React.FC<LoansListProps> = ({ onCreateLoan, onViewLoan }) => {
               <Clock size={24} />
             </div>
             <div className="summary-content">
-              <div className="summary-value">{loanSummary.pending}</div>
+              <div className="summary-value">{purchaseSummary.pending}</div>
               <div className="summary-label">Pending</div>
             </div>
           </div>
@@ -237,8 +237,8 @@ const LoansList: React.FC<LoansListProps> = ({ onCreateLoan, onViewLoan }) => {
               <DollarSign size={24} />
             </div>
             <div className="summary-content">
-              <div className="summary-value">{formatCurrency(loanSummary.totalBorrowed)}</div>
-              <div className="summary-label">Total Borrowed</div>
+              <div className="summary-value">{formatCurrency(purchaseSummary.totalPurchased)}</div>
+              <div className="summary-label">Total Purchased</div>
             </div>
           </div>
         </div>
@@ -251,7 +251,7 @@ const LoansList: React.FC<LoansListProps> = ({ onCreateLoan, onViewLoan }) => {
             <Search size={16} />
             <input
               type="text"
-              placeholder="Search loans by ID, amount, or status..."
+              placeholder="Search purchases by ID, amount, or status..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -297,41 +297,41 @@ const LoansList: React.FC<LoansListProps> = ({ onCreateLoan, onViewLoan }) => {
         </div>
       </div>
 
-      {/* Loans Content */}
+      {/* Purchases Content */}
       <div className="loans-content">
         {loading ? (
           <div className="loans-loading">
             <div className="spinner"></div>
-            <p>Loading your loans...</p>
+            <p>Loading your purchases...</p>
           </div>
         ) : error ? (
           <div className="loans-error">
             <AlertCircle size={48} />
-            <h3>Error Loading Loans</h3>
+            <h3>Error Loading Purchases</h3>
             <p>{error}</p>
             <button className="btn-primary" onClick={handleRefresh}>
               Try Again
             </button>
           </div>
-        ) : filteredAndSortedLoans.length === 0 ? (
+        ) : filteredAndSortedPurchases.length === 0 ? (
           <div className="loans-empty">
             {loans.length === 0 ? (
               <div className="empty-content">
                 <DollarSign size={48} />
-                <h3>No Loans Yet</h3>
-                <p>You haven't applied for any loans yet. Get started with your first loan application!</p>
-                {onCreateLoan && (
-                  <button className="btn-primary" onClick={onCreateLoan}>
+                <h3>No Purchases Yet</h3>
+                <p>You haven't applied for any purchases yet. Get started with your first purchase application!</p>
+                {onCreatePurchase && (
+                  <button className="btn-primary" onClick={onCreatePurchase}>
                     <Plus size={16} />
-                    Apply for Loan
+                    Apply for Purchase
                   </button>
                 )}
               </div>
             ) : (
               <div className="empty-content">
                 <Filter size={48} />
-                <h3>No Matching Loans</h3>
-                <p>No loans match your current search and filter criteria.</p>
+                <h3>No Matching Purchases</h3>
+                <p>No purchases match your current search and filter criteria.</p>
                 <button 
                   className="btn-secondary" 
                   onClick={clearFilters}
@@ -343,11 +343,11 @@ const LoansList: React.FC<LoansListProps> = ({ onCreateLoan, onViewLoan }) => {
           </div>
         ) : (
           <div className="loans-grid">
-            {filteredAndSortedLoans.map((loan) => (
+            {filteredAndSortedPurchases.map((loan) => (
               <div key={loan.loan_id} className="loan-card">
                 <div className="loan-header">
                   <div className="loan-id">
-                    <span className="id-label">Loan ID:</span>
+                    <span className="id-label">Purchase ID:</span>
                     <span className="id-value">{loan.loan_id.slice(0, 8)}...</span>
                   </div>
                   
@@ -389,11 +389,11 @@ const LoansList: React.FC<LoansListProps> = ({ onCreateLoan, onViewLoan }) => {
                 </div>
 
                 <div className="loan-actions">
-                  {onViewLoan && (
+                  {onViewPurchase && (
                     <button 
                       className="btn-view"
-                      onClick={() => onViewLoan(loan.loan_id)}
-                      title="View loan details"
+                      onClick={() => onViewPurchase(loan.loan_id)}
+                      title="View purchase details"
                     >
                       <Eye size={14} />
                       View Details
@@ -413,4 +413,4 @@ const LoansList: React.FC<LoansListProps> = ({ onCreateLoan, onViewLoan }) => {
   );
 };
 
-export default LoansList;
+export default PurchasesList;
