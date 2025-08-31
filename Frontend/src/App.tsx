@@ -1,14 +1,21 @@
-
-import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import Header from './components/Header';
-import Dashboard from './components/Dashboard';
-import Profile from './components/Profile';
-import LoadingSpinner from './components/LoadingSpinner';
-import PageTransition from './components/PageTransition';
+import React, { useEffect, useState } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import Header from "./Components/Header";
+import Dashboard from "./Components/Dashboard";
+import Profile from "./Components/Profile";
+import Loans from "./Components/Loans/Loans";
+import LoadingSpinner from "./Components/LoadingSpinner";
+import PageTransition from "./Components/PageTransition";
 import "@rainbow-me/rainbowkit/styles.css";
 import "./styles/global.css";
+import "./styles/loans.css";
 
 // Page wrapper for transitions
 const PageWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -24,7 +31,7 @@ const PageWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   return (
     <PageTransition
-      stage={transitionStage}
+      stage={transitionStage as "fadeIn" | "fadeOut"}
       onAnimationEnd={() => {
         if (transitionStage === "fadeOut") {
           setDisplayLocation(location);
@@ -68,11 +75,14 @@ function App() {
           </div>
           <Header />
           <main className="main-content">
-            <PageWrapper />
+            <PageWrapper children={undefined} />
           </main>
           <footer className="app-footer">
             <div className="footer-content">
-              <p>&copy; 2024 ForwarDefi. Built on Avalanche. Empowering decentralized finance.</p>
+              <p>
+                &copy; 2024 ForwarDefi. Built on Avalanche. Empowering
+                decentralized finance.
+              </p>
             </div>
           </footer>
         </div>
