@@ -1,0 +1,247 @@
+[
+  {
+    "id": "U1",
+    "name": "Alice",
+    "type": "normal",
+    "months": [
+      {
+        "month": "Mar",
+        "score": 727,
+        "spend": 1668,
+        "repayment": 1673,
+        "status": "on-time"
+      },
+      {
+        "month": "Apr",
+        "score": 722,
+        "spend": 1199,
+        "repayment": 1186,
+        "status": "on-time"
+      },
+      {
+        "month": "May",
+        "score": 712,
+        "spend": 1340,
+        "repayment": 1334,
+        "status": "on-time"
+      },
+      {
+        "month": "Jun",
+        "score": 711,
+        "spend": 1793,
+        "repayment": 1793,
+        "status": "on-time"
+      },
+      {
+        "month": "Jul",
+        "score": 717,
+        "spend": 744,
+        "repayment": 742,
+        "status": "on-time"
+      },
+      {
+        "month": "Aug",
+        "score": 707,
+        "spend": 1301,
+        "repayment": 1315,
+        "status": "on-time"
+      }
+    ]
+  },
+  {
+    "id": "U2",
+    "name": "Bob",
+    "type": "risky",
+    "months": [
+      {
+        "month": "Mar",
+        "score": 668,
+        "spend": 560,
+        "repayment": 603,
+        "status": "on-time"
+      },
+      {
+        "month": "Apr",
+        "score": 673,
+        "spend": 1884,
+        "repayment": 1842,
+        "status": "on-time"
+      },
+      {
+        "month": "May",
+        "score": 684,
+        "spend": 1172,
+        "repayment": 386,
+        "status": "partial"
+      },
+      {
+        "month": "Jun",
+        "score": 709,
+        "spend": 1455,
+        "repayment": 144,
+        "status": "partial"
+      },
+      {
+        "month": "Jul",
+        "score": 729,
+        "spend": 223,
+        "repayment": 286,
+        "status": "on-time"
+      },
+      {
+        "month": "Aug",
+        "score": 715,
+        "spend": 741,
+        "repayment": 254,
+        "status": "partial"
+      }
+    ]
+  },
+  {
+    "id": "U3",
+    "name": "Charlie",
+    "type": "improving",
+    "months": [
+      {
+        "month": "Mar",
+        "score": 605,
+        "spend": 1453,
+        "repayment": 1466,
+        "status": "early-full"
+      },
+      {
+        "month": "Apr",
+        "score": 607,
+        "spend": 256,
+        "repayment": 276,
+        "status": "on-time"
+      },
+      {
+        "month": "May",
+        "score": 628,
+        "spend": 1137,
+        "repayment": 1222,
+        "status": "on-time"
+      },
+      {
+        "month": "Jun",
+        "score": 640,
+        "spend": 1804,
+        "repayment": 1843,
+        "status": "early-full"
+      },
+      {
+        "month": "Jul",
+        "score": 648,
+        "spend": 1948,
+        "repayment": 2006,
+        "status": "on-time"
+      },
+      {
+        "month": "Aug",
+        "score": 671,
+        "spend": 449,
+        "repayment": 539,
+        "status": "on-time"
+      }
+    ]
+  },
+  {
+    "id": "U4",
+    "name": "Diana",
+    "type": "declining",
+    "months": [
+      {
+        "month": "Mar",
+        "score": 787,
+        "spend": 1282,
+        "repayment": 1087,
+        "status": "delayed/less"
+      },
+      {
+        "month": "Apr",
+        "score": 773,
+        "spend": 740,
+        "repayment": 591,
+        "status": "delayed/less"
+      },
+      {
+        "month": "May",
+        "score": 768,
+        "spend": 1436,
+        "repayment": 1375,
+        "status": "delayed/less"
+      },
+      {
+        "month": "Jun",
+        "score": 753,
+        "spend": 283,
+        "repayment": 162,
+        "status": "delayed/less"
+      },
+      {
+        "month": "Jul",
+        "score": 731,
+        "spend": 1073,
+        "repayment": 889,
+        "status": "delayed/less"
+      },
+      {
+        "month": "Aug",
+        "score": 715,
+        "spend": 540,
+        "repayment": 484,
+        "status": "delayed/less"
+      }
+    ]
+  },
+  {
+    "id": "U5",
+    "name": "Eve",
+    "type": "edge",
+    "months": [
+      {
+        "month": "Mar",
+        "score": 536,
+        "spend": 1649,
+        "repayment": 1588,
+        "status": "on-time"
+      },
+      {
+        "month": "Apr",
+        "score": 506,
+        "spend": 973,
+        "repayment": 0,
+        "status": "default"
+      },
+      {
+        "month": "May",
+        "score": 406,
+        "spend": 1067,
+        "repayment": 0,
+        "status": "liquidated"
+      },
+      {
+        "month": "Jun",
+        "score": 396,
+        "spend": 0,
+        "repayment": 0,
+        "status": "liquidated"
+      },
+      {
+        "month": "Jul",
+        "score": 386,
+        "spend": 0,
+        "repayment": 0,
+        "status": "liquidated"
+      },
+      {
+        "month": "Aug",
+        "score": 402,
+        "spend": 631,
+        "repayment": 331,
+        "status": "recovering"
+      }
+    ]
+  }
+]

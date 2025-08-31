@@ -7,22 +7,26 @@
   --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
   --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
   --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  
-  --card-bg: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+
+  --card-bg: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.1) 0%,
+    rgba(118, 75, 162, 0.1) 100%
+  );
   --card-border: rgba(255, 255, 255, 0.1);
   --text-primary: #fff;
   --text-secondary: rgba(255, 255, 255, 0.7);
   --text-muted: rgba(255, 255, 255, 0.6);
-  
+
   --border-radius-sm: 8px;
   --border-radius-md: 12px;
   --border-radius-lg: 16px;
   --border-radius-xl: 20px;
-  
+
   --shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.1);
   --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.15);
   --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.25);
-  
+
   --transition: all 0.3s ease;
   --backdrop-blur: blur(15px);
 }
@@ -33,7 +37,7 @@
   max-width: 100%;
   margin: 0 auto;
   padding: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   background: transparent;
   min-height: 100vh;
   color: var(--text-primary);
@@ -88,13 +92,17 @@
 }
 
 .loan-details-header::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.05) 0%,
+    rgba(118, 75, 162, 0.05) 100%
+  );
   z-index: -1;
 }
 
@@ -196,7 +204,7 @@
 }
 
 .loan-id {
-  font-family: 'Monaco', 'Menlo', monospace;
+  font-family: "Monaco", "Menlo", monospace;
   font-size: 0.875rem;
   color: var(--text-secondary);
   background: rgba(255, 255, 255, 0.1);
@@ -251,8 +259,12 @@
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Main Content Grid */
@@ -288,18 +300,22 @@
 }
 
 .details-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.05) 0%,
+    rgba(118, 75, 162, 0.05) 100%
+  );
   z-index: -1;
 }
 
 .details-card::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -354,7 +370,11 @@
   gap: 2.5rem;
   align-items: center;
   padding: 2.5rem;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.15) 0%,
+    rgba(118, 75, 162, 0.15) 100%
+  );
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 18px;
   backdrop-filter: blur(10px);
@@ -453,13 +473,17 @@
 }
 
 .detail-item::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.03) 0%,
+    rgba(118, 75, 162, 0.03) 100%
+  );
   z-index: -1;
 }
 
@@ -504,7 +528,11 @@
   gap: 2.5rem;
   align-items: center;
   padding: 2.5rem;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(56, 249, 215, 0.15) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(16, 185, 129, 0.15) 0%,
+    rgba(56, 249, 215, 0.15) 100%
+  );
   border: 1px solid rgba(16, 185, 129, 0.2);
   border-radius: 18px;
   backdrop-filter: blur(10px);
@@ -586,13 +614,17 @@
 }
 
 .timeline-item::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 1.5rem;
   top: 3rem;
   bottom: -1rem;
   width: 2px;
-  background: linear-gradient(180deg, rgba(102, 126, 234, 0.3) 0%, transparent 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(102, 126, 234, 0.3) 0%,
+    transparent 100%
+  );
 }
 
 .timeline-item:last-child::before {
@@ -685,13 +717,17 @@
 }
 
 .action-item::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.03) 0%,
+    rgba(118, 75, 162, 0.03) 100%
+  );
   z-index: -1;
 }
 
@@ -792,13 +828,17 @@
 .loan-details-loading::before,
 .loan-details-error::before,
 .loan-details-not-found::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.05) 0%,
+    rgba(118, 75, 162, 0.05) 100%
+  );
   z-index: -1;
 }
 
@@ -876,15 +916,31 @@
   animation: fadeInUp 0.6s ease-out;
 }
 
-.details-card:nth-child(1) { animation-delay: 0.1s; }
-.details-card:nth-child(2) { animation-delay: 0.2s; }
-.details-card:nth-child(3) { animation-delay: 0.3s; }
-.details-card:nth-child(4) { animation-delay: 0.4s; }
+.details-card:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.details-card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.details-card:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.details-card:nth-child(4) {
+  animation-delay: 0.4s;
+}
 
-.loan-overview { animation: slideInLeft 0.6s ease-out 0.1s both; }
-.collateral-info { animation: slideInRight 0.6s ease-out 0.2s both; }
-.timeline-card { animation: slideInLeft 0.6s ease-out 0.3s both; }
-.actions-card { animation: slideInRight 0.6s ease-out 0.4s both; }
+.loan-overview {
+  animation: slideInLeft 0.6s ease-out 0.1s both;
+}
+.collateral-info {
+  animation: slideInRight 0.6s ease-out 0.2s both;
+}
+.timeline-card {
+  animation: slideInLeft 0.6s ease-out 0.3s both;
+}
+.actions-card {
+  animation: slideInRight 0.6s ease-out 0.4s both;
+}
 
 /* Responsive Design */
 @media (max-width: 1024px) {
@@ -978,6 +1034,3 @@
     height: 32px;
   }
 }
-
-@media (max-width: 480px) {
-
