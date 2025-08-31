@@ -123,7 +123,9 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
     const rpcUrl =
       this.configService.get<string>('AVALANCHE_RPC_URL') ||
       'https://api.avax.network/ext/bc/C/rpc';
-    this.provider = new ethers.JsonRpcProvider(rpcUrl);
+    this.provider = new ethers.JsonRpcProvider(rpcUrl, 43113, {
+      polling: true,
+    });
 
     // Test connection
     const network = await this.provider.getNetwork();
@@ -250,12 +252,15 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
         this.tokenContract.totalSupply(),
       ]);
 
-      return {
-        name,
-        symbol,
-        decimals,
+      // Ensure all values are properly serialized
+      const result = {
+        name: String(name),
+        symbol: String(symbol),
+        decimals: Number(decimals),
         totalSupply: totalSupply.toString(),
       };
+
+      return this.serializeForJSON(result);
     } catch (error) {
       this.logger.error('Failed to get token info:', error);
       throw new Error(`Failed to get token info: ${error.message}`);
@@ -1065,6 +1070,34 @@ export class DefiPaymentsService implements OnModuleInit, OnModuleDestroy {
   }
 
   // ==================== UTILITY FUNCTIONS ====================
+
+  /**
+   * Safely convert any value to a JSON-serializable format
+   * This handles BigInt, BigNumber, and other non-serializable types
+   */
+  private serializeForJSON(value: any): any {
+    if (value === null || value === undefined) {
+      return value;
+    }
+
+    if (typeof value === 'bigint') {
+      return value.toString();
+    }
+
+    if (typeof value === 'object') {
+      if (Array.isArray(value)) {
+        return value.map((item) => this.serializeForJSON(item));
+      }
+
+      const serialized: any = {};
+      for (const [key, val] of Object.entries(value)) {
+        serialized[key] = this.serializeForJSON(val);
+      }
+      return serialized;
+    }
+
+    return value;
+  }
 
   formatTokenAmount(amount: string, decimals: number = 6): string {
     return ethers.formatUnits(amount, decimals);

@@ -52,9 +52,9 @@ export interface QuoteResponse {
 }
 
 export interface NetworkInfo {
-  chainId: string;
+  chainId: any;
   name: string;
-  gasPrice: string;
+  gasPrice: any;
 }
 
 export interface TransactionResult {

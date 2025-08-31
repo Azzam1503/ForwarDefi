@@ -13,7 +13,7 @@ const config = new ConfigService();
 
 let log_config = {
   LOG_LEVEL: config.get('LOG_LEVEL') || `debug`,
-  SERVICE_NAME: config.get('SERVICE_NAME') || 'college_dunia',
+  SERVICE_NAME: config.get('SERVICE_NAME') || 'Avalanche Project',
   LOG_DIRECTORY_LOCATION: config.get('LOG_DIRECTORY_LOCATION') || `./logs/`,
   LOG_IN_GMT_TIMESTAMP: config.get('LOG_IN_GMT_TIMESTAMP') || `TRUE`,
 };
