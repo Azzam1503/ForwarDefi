@@ -184,4 +184,81 @@ export class UserService {
       );
     }
   }
+
+  async getWalletAddress(
+    correlation_id: string,
+    userId: string,
+  ): Promise<string | null> {
+    this.logger.setContext(this.constructor.name + '/getWalletAddress');
+    this.logger.debug(
+      correlation_id,
+      `Getting wallet address for user ID: ${userId}`,
+    );
+
+    const user = await this.user_repo.findOne({
+      where: { user_id: userId },
+      select: ['wallet_address'],
+    });
+
+    if (!user) {
+      this.logger.debug(correlation_id, `User not found: ${userId}`);
+      throw customHttpError(
+        ENTITY_NOT_FOUND,
+        'USER_NOT_FOUND',
+        'User not found',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    this.logger.debug(
+      correlation_id,
+      `Wallet address retrieved: ${user.wallet_address}`,
+    );
+    return user.wallet_address;
+  }
+
+  async updateWalletAddress(
+    correlation_id: string,
+    userId: string,
+    walletAddress: string,
+  ) {
+    this.logger.setContext(this.constructor.name + '/updateWalletAddress');
+    this.logger.debug(
+      correlation_id,
+      `Updating wallet address for user ID: ${userId}`,
+    );
+
+    const user = await this.user_repo.findOne({
+      where: { user_id: userId },
+    });
+
+    if (!user) {
+      this.logger.debug(correlation_id, `User not found: ${userId}`);
+      throw customHttpError(
+        ENTITY_NOT_FOUND,
+        'USER_NOT_FOUND',
+        'User not found',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    // Update wallet address
+    await this.user_repo.update(userId, {
+      wallet_address: walletAddress,
+    });
+
+    this.logger.debug(
+      correlation_id,
+      `Wallet address updated successfully for user: ${userId}`,
+    );
+
+    return {
+      message: 'Wallet address updated successfully',
+      data: {
+        user_id: user.user_id,
+        wallet_address: walletAddress,
+        updated_at: new Date(),
+      },
+    };
+  }
 }

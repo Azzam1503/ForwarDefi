@@ -7,5 +7,6 @@ import { LoggerModule } from 'src/core/logger/logger.module';
   imports: [LoggerModule],
   providers: [DefiPaymentsService],
   controllers: [DefiPaymentsController],
+  exports: [DefiPaymentsService],
 })
 export class DefiPaymentsModule {}

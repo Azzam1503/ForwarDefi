@@ -3,6 +3,7 @@ import {
   IsNumber,
   IsPositive,
   IsString,
+  IsOptional,
   Min,
   Max,
   ValidateIf,
@@ -93,4 +94,15 @@ export class CreateLoanDto {
     message: 'Collateral amount must be less than loan amount',
   })
   collateral_amount: number;
+
+  @ApiProperty({
+    description: 'Number of installments for the loan (default: 1)',
+    example: 3,
+    minimum: 1,
+    required: false,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  installments?: number;
 }

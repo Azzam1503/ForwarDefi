@@ -6,6 +6,14 @@ import { CreateLoanDto } from './dto/create-loan.dto';
 import { UpdateLoanDto } from './dto/update-loan.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { CustomLogger } from 'src/core/logger/logger.service';
+import { DefiPaymentsService } from 'src/defi_payments/defi_payments.service';
+import { TransactionService } from 'src/transaction/transaction.service';
+import { UserService } from 'src/user/user.service';
+import {
+  TransactionType,
+  TransactionSubtype,
+} from 'src/transaction/entities/transaction.entity';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class LoanService {
@@ -13,6 +21,10 @@ export class LoanService {
     @InjectRepository(Loan)
     private readonly loanRepository: Repository<Loan>,
     private readonly logger: CustomLogger,
+    private readonly defiPaymentsService: DefiPaymentsService,
+    private readonly transactionService: TransactionService,
+    private readonly userService: UserService,
+    private readonly configService: ConfigService,
   ) {}
 
   private generateId(): string {
@@ -45,10 +57,166 @@ export class LoanService {
       `Loan created successfully with ID: ${loan_id}`,
     );
 
-    return {
-      message: 'Loan created successfully',
-      data: savedLoan,
-    };
+    try {
+      // Try to get user's wallet address (optional)
+      let buyerAddress: string | null = null;
+      try {
+        buyerAddress = await this.userService.getWalletAddress(
+          correlation_id,
+          createLoanDto.user_id,
+        );
+      } catch (error) {
+        this.logger.warn(
+          correlation_id,
+          `Could not get user wallet address: ${error.message}`,
+        );
+      }
+
+      // If we have a wallet address, try blockchain integration
+      if (buyerAddress) {
+        try {
+          // Get contract address for approval
+          const contractAddress = this.configService.get<string>(
+            'BNPL_CONTRACT_ADDRESS',
+          );
+          if (!contractAddress) {
+            throw new Error('BNPL_CONTRACT_ADDRESS not configured');
+          }
+
+          // Check if user has sufficient allowance
+          this.logger.debug(correlation_id, 'Checking user token allowance');
+          const userTokenStatus =
+            await this.defiPaymentsService.checkUserTokenStatus(
+              correlation_id,
+              buyerAddress,
+            );
+
+          // If insufficient allowance, approve tokens
+          if (
+            !userTokenStatus.hasAllowance ||
+            BigInt(userTokenStatus.allowance) <
+              BigInt(createLoanDto.amount * 1000000)
+          ) {
+            this.logger.debug(
+              correlation_id,
+              'Insufficient allowance, approving tokens',
+            );
+            const approvalAmount = (createLoanDto.amount * 1000000).toString();
+            await this.defiPaymentsService.approveTokens(
+              correlation_id,
+              contractAddress,
+              approvalAmount,
+            );
+            this.logger.debug(correlation_id, 'Tokens approved successfully');
+          }
+
+          // Create order on blockchain using DefiPaymentsService
+          this.logger.debug(correlation_id, 'Creating order on blockchain');
+
+          const createOrderDto = {
+            purchaseAmount: (createLoanDto.amount * 1000000).toString(), // Convert to USDC units (6 decimals)
+            merchant: '0xD4Fa7d8c4462E002fc6978A650141bCC7bf0db30', // Hardcoded merchant address (treasury address from deployment)
+            dueInSeconds: (30 * 24 * 60 * 60).toString(), // 30 days from now
+            installments: createLoanDto.installments ?? 1, // Default to 1 if not provided
+          };
+
+          const blockchainResult = await this.defiPaymentsService.createOrder(
+            correlation_id,
+            createOrderDto,
+            buyerAddress,
+          );
+
+          // Update loan with blockchain information
+          await this.loanRepository.update(loan_id, {
+            blockchain_order_id: blockchainResult.orderId.toString(),
+            blockchain_tx_hash: blockchainResult.txHash,
+            status: LoanStatus.APPROVED,
+          });
+
+          // Record blockchain transaction
+          await this.transactionService.create(correlation_id, {
+            user_id: createLoanDto.user_id,
+            loan_id: loan_id,
+            type: TransactionType.BLOCKCHAIN_ORDER_CREATION,
+            subtype: TransactionSubtype.DEBIT,
+            amount: createLoanDto.amount,
+            tx_hash: blockchainResult.txHash,
+            blockchain_order_id: blockchainResult.orderId.toString(),
+            blockchain_status: 'CONFIRMED',
+          });
+
+          this.logger.debug(
+            correlation_id,
+            `Loan created successfully with blockchain order ID: ${blockchainResult.orderId}`,
+          );
+
+          // Get updated loan data
+          const updatedLoan = await this.findOne(correlation_id, loan_id);
+
+          return {
+            message: 'Loan created successfully on blockchain',
+            data: {
+              ...updatedLoan.data,
+              blockchain_order_id: blockchainResult.orderId,
+              blockchain_tx_hash: blockchainResult.txHash,
+            },
+          };
+        } catch (blockchainError) {
+          this.logger.error(
+            correlation_id,
+            `Blockchain integration failed: ${blockchainError.message}`,
+          );
+
+          // Record failed transaction
+          await this.transactionService.create(correlation_id, {
+            user_id: createLoanDto.user_id,
+            loan_id: loan_id,
+            type: TransactionType.BLOCKCHAIN_ORDER_CREATION,
+            subtype: TransactionSubtype.DEBIT,
+            amount: createLoanDto.amount,
+            blockchain_status: 'FAILED',
+          });
+
+          // Mark loan as failed when blockchain integration fails
+          await this.loanRepository.update(loan_id, {
+            status: LoanStatus.FAILED,
+          });
+
+          this.logger.debug(
+            correlation_id,
+            'Loan marked as failed due to blockchain integration failure',
+          );
+        }
+      }
+
+      // If no wallet address, create loan in database only
+      if (!buyerAddress) {
+        await this.loanRepository.update(loan_id, {
+          status: LoanStatus.PENDING,
+        });
+
+        const updatedLoan = await this.findOne(correlation_id, loan_id);
+
+        return {
+          message: 'Loan created in database (no wallet address available)',
+          data: updatedLoan.data,
+        };
+      } else {
+        // If blockchain failed, loan is already marked as FAILED
+        const updatedLoan = await this.findOne(correlation_id, loan_id);
+
+        return {
+          message: 'Loan creation failed (blockchain integration failed)',
+          data: updatedLoan.data,
+        };
+      }
+    } catch (error) {
+      this.logger.error(
+        correlation_id,
+        `Error in loan creation process: ${error.message}`,
+      );
+      throw error;
+    }
   }
 
   async findAll(correlation_id: string) {

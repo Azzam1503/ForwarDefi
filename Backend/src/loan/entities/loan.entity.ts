@@ -12,6 +12,7 @@ export enum LoanStatus {
   ACTIVE = 'ACTIVE',
   REPAID = 'REPAID',
   DEFAULTED = 'DEFAULTED',
+  FAILED = 'FAILED',
 }
 
 @Entity('loans')
@@ -36,6 +37,12 @@ export class Loan {
     default: LoanStatus.PENDING,
   })
   status: LoanStatus;
+
+  @Column('varchar', { length: 36, nullable: true })
+  blockchain_order_id: string;
+
+  @Column('varchar', { length: 66, nullable: true })
+  blockchain_tx_hash: string;
 
   @CreateDateColumn()
   created_at: Date;

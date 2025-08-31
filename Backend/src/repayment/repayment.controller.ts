@@ -12,6 +12,7 @@ import {
 import { RepaymentService } from './repayment.service';
 import { CreateRepaymentDto } from './dto/create-repayment.dto';
 import { UpdateRepaymentDto } from './dto/update-repayment.dto';
+import { BlockchainRepaymentDto } from './dto/blockchain-repayment.dto';
 import { Correlation } from 'src/core/correlation/correlation.decorator';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 
@@ -166,5 +167,56 @@ export class RepaymentController {
   })
   remove(@Correlation() correlation_id: string, @Param('id') id: string) {
     return this.repaymentService.remove(correlation_id, id);
+  }
+
+  @Post('blockchain')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Process blockchain repayment',
+    description:
+      'Process a repayment on the blockchain and create a repayment record',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Blockchain repayment processed successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        message: {
+          type: 'string',
+          example: 'Repayment processed successfully on blockchain',
+        },
+        data: {
+          type: 'object',
+          properties: {
+            repayment_id: { type: 'string', example: 'uuid-string' },
+            loan_id: { type: 'string', example: 'uuid-string' },
+            amount: { type: 'number', example: 100.0 },
+            status: { type: 'string', example: 'PAID' },
+            blockchain_tx_hash: {
+              type: 'string',
+              example: '0x1234567890abcdef...',
+            },
+            blockchain_order_id: { type: 'number', example: 12345 },
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - Validation failed',
+  })
+  processBlockchainRepayment(
+    @Correlation() correlation_id: string,
+    @Body() blockchainRepaymentDto: BlockchainRepaymentDto,
+  ) {
+    return this.repaymentService.processBlockchainRepayment(
+      correlation_id,
+      blockchainRepaymentDto.orderId,
+      blockchainRepaymentDto.amount,
+      blockchainRepaymentDto.user_id,
+      blockchainRepaymentDto.loan_id,
+    );
   }
 }

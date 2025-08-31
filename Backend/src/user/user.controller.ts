@@ -9,11 +9,13 @@ import {
   UseInterceptors,
   BadRequestException,
   HttpStatus,
+  Put,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
+import { UpdateWalletAddressDto } from './dto/update-wallet-address.dto';
 import { Correlation } from 'src/core/correlation/correlation.decorator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { GetUser } from 'src/auth/get-user.decorator';
@@ -158,5 +160,54 @@ export class UserController {
     @Param('id') id: string,
   ) {
     return await this.user_service.findById(correlation_id, id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put(':id/wallet-address')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Update user wallet address',
+    description: 'Update the wallet address for a specific user',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Wallet address updated successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', example: 'Wallet address updated successfully' },
+        data: {
+          type: 'object',
+          properties: {
+            user_id: { type: 'string', example: 'uuid-string' },
+            wallet_address: { type: 'string', example: '0x1234567890123456789012345678901234567890' },
+            updated_at: { type: 'string', format: 'date-time' },
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - Invalid wallet address format',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - JWT token required',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'User not found',
+  })
+  async updateWalletAddress(
+    @Correlation() correlation_id: string,
+    @Param('id') id: string,
+    @Body() updateWalletAddressDto: UpdateWalletAddressDto,
+  ) {
+    return await this.user_service.updateWalletAddress(
+      correlation_id,
+      id,
+      updateWalletAddressDto.wallet_address,
+    );
   }
 }

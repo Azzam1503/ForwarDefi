@@ -68,4 +68,41 @@ export class CreateTransactionDto {
   @IsOptional()
   @IsString()
   tx_hash?: string;
+
+  @ApiProperty({
+    description: 'Blockchain order ID (optional)',
+    example: '12345',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  blockchain_order_id?: string;
+
+  @ApiProperty({
+    description: 'Blockchain transaction status (optional)',
+    enum: ['PENDING', 'CONFIRMED', 'FAILED'],
+    example: 'CONFIRMED',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  blockchain_status?: string;
+
+  @ApiProperty({
+    description: 'Gas used in transaction (optional)',
+    example: 21000,
+    required: false,
+  })
+  @IsOptional()
+  @IsNumber()
+  gas_used?: number;
+
+  @ApiProperty({
+    description: 'Block number (optional)',
+    example: 12345678,
+    required: false,
+  })
+  @IsOptional()
+  @IsNumber()
+  block_number?: number;
 }
