@@ -176,8 +176,8 @@ const LoansList: React.FC<LoansListProps> = ({ onCreateLoan, onViewLoan }) => {
       {/* Header Section */}
       <div className="loans-header">
         <div className="header-content">
-          <h2>My Loans</h2>
-          <p>Manage your loan applications and active loans</p>
+          <h2>My Purchases</h2>
+          <p>Manage your purchases applications and active loans</p>
         </div>
         
         <div className="header-actions">
@@ -193,7 +193,7 @@ const LoansList: React.FC<LoansListProps> = ({ onCreateLoan, onViewLoan }) => {
           {onCreateLoan && (
             <button className="btn-primary" onClick={onCreateLoan}>
               <Plus size={16} />
-              New Loan
+              New Purchase
             </button>
           )}
         </div>
@@ -208,7 +208,7 @@ const LoansList: React.FC<LoansListProps> = ({ onCreateLoan, onViewLoan }) => {
             </div>
             <div className="summary-content">
               <div className="summary-value">{loanSummary.total}</div>
-              <div className="summary-label">Total Loans</div>
+              <div className="summary-label">Total Purchases</div>
             </div>
           </div>
 
@@ -218,7 +218,7 @@ const LoansList: React.FC<LoansListProps> = ({ onCreateLoan, onViewLoan }) => {
             </div>
             <div className="summary-content">
               <div className="summary-value">{loanSummary.active}</div>
-              <div className="summary-label">Active Loans</div>
+              <div className="summary-label">Active Purchases</div>
             </div>
           </div>
 
@@ -302,12 +302,12 @@ const LoansList: React.FC<LoansListProps> = ({ onCreateLoan, onViewLoan }) => {
         {loading ? (
           <div className="loans-loading">
             <div className="spinner"></div>
-            <p>Loading your loans...</p>
+            <p>Loading your purchases...</p>
           </div>
         ) : error ? (
           <div className="loans-error">
             <AlertCircle size={48} />
-            <h3>Error Loading Loans</h3>
+            <h3>Error Loading purchases</h3>
             <p>{error}</p>
             <button className="btn-primary" onClick={handleRefresh}>
               Try Again
@@ -318,20 +318,20 @@ const LoansList: React.FC<LoansListProps> = ({ onCreateLoan, onViewLoan }) => {
             {loans.length === 0 ? (
               <div className="empty-content">
                 <DollarSign size={48} />
-                <h3>No Loans Yet</h3>
-                <p>You haven't applied for any loans yet. Get started with your first loan application!</p>
+                <h3>No Purchase Yet</h3>
+                <p>You haven't applied for any purchase yet. Get started with your first Purchase application!</p>
                 {onCreateLoan && (
                   <button className="btn-primary" onClick={onCreateLoan}>
                     <Plus size={16} />
-                    Apply for Loan
+                    Apply for Purchase
                   </button>
                 )}
               </div>
             ) : (
               <div className="empty-content">
                 <Filter size={48} />
-                <h3>No Matching Loans</h3>
-                <p>No loans match your current search and filter criteria.</p>
+                <h3>No Matching Purchase</h3>
+                <p>No purchases match your current search and filter criteria.</p>
                 <button 
                   className="btn-secondary" 
                   onClick={clearFilters}
@@ -347,7 +347,7 @@ const LoansList: React.FC<LoansListProps> = ({ onCreateLoan, onViewLoan }) => {
               <div key={loan.loan_id} className="loan-card">
                 <div className="loan-header">
                   <div className="loan-id">
-                    <span className="id-label">Loan ID:</span>
+                    <span className="id-label">Purchase ID:</span>
                     <span className="id-value">{loan.loan_id.slice(0, 8)}...</span>
                   </div>
                   

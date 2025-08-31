@@ -67,7 +67,7 @@ const Dashboard: React.FC = () => {
     },
     {
       icon: <Activity size={24} />,
-      label: "Loans Processed",
+      label: "Purchases Processed",
       value: "456",
       change: "+15.3%",
       positive: true,
@@ -107,9 +107,9 @@ const Dashboard: React.FC = () => {
     {
       id: "create-loan",
       icon: <DollarSign size={32} />,
-      title: "Create Loan",
+      title: "Create Purchase",
       description:
-        "Request instant crypto loans with competitive rates and flexible terms",
+        "Request instant crypto puchases with competitive rates and flexible terms",
       benefits: [
         "Instant approval",
         "Low interest rates",
@@ -121,9 +121,9 @@ const Dashboard: React.FC = () => {
     {
       id: "my-loans",
       icon: <CreditCard size={32} />,
-      title: "My Loans",
+      title: "My Purchase",
       description:
-        "View and manage your active loan agreements and payment schedules",
+        "View and manage your active Purchase agreements and payment schedules",
       benefits: ["Track payments", "Manage terms", "View history"],
       comingSoon: false,
       action: () => navigate("/loans"),
@@ -140,9 +140,9 @@ const Dashboard: React.FC = () => {
     {
       id: "insurance",
       icon: <Shield size={32} />,
-      title: "Loan Protection",
+      title: "Purchase Protection",
       description:
-        "Protect your loans with smart contract insurance and risk management",
+        "Protect your purchase with smart contract insurance and risk management",
       benefits: ["Smart contracts", "Risk mitigation", "Automated protection"],
       comingSoon: true,
     },
@@ -217,13 +217,13 @@ const Dashboard: React.FC = () => {
           {isAuthenticated && (
             <div className="loans-overview">
               <div className="section-header">
-                <h2 className="section-title">Your Loans Overview</h2>
+                <h2 className="section-title">Your Purchase Overview</h2>
                 <button
                   className="btn-view-all"
                   onClick={() => navigate("/loans")}
                 >
                   <Eye size={16} />
-                  View All Loans
+                  View All Purchases
                 </button>
               </div>
 
@@ -236,7 +236,7 @@ const Dashboard: React.FC = () => {
                     <div className="stat-value">
                       {loansLoading ? "..." : loanSummary.total}
                     </div>
-                    <div className="stat-label">Total Loans</div>
+                    <div className="stat-label">Total Purchases</div>
                   </div>
                 </div>
 
@@ -248,7 +248,7 @@ const Dashboard: React.FC = () => {
                     <div className="stat-value">
                       {loansLoading ? "..." : loanSummary.active}
                     </div>
-                    <div className="stat-label">Active Loans</div>
+                    <div className="stat-label">Active Purchases</div>
                   </div>
                 </div>
 
@@ -285,7 +285,7 @@ const Dashboard: React.FC = () => {
                   onClick={() => navigate("/loans")}
                 >
                   <Plus size={16} />
-                  Apply for New Loan
+                  Apply for New Purchase
                 </button>
 
                 <button
@@ -293,7 +293,7 @@ const Dashboard: React.FC = () => {
                   onClick={() => navigate("/loans")}
                 >
                   <Eye size={16} />
-                  Manage Existing Loans
+                  Manage Existing Purchases
                 </button>
               </div>
             </div>
@@ -373,7 +373,7 @@ const Dashboard: React.FC = () => {
                     <Zap size={20} />
                     <div>
                       <h4>Instant Processing</h4>
-                      <p>Get loans approved in minutes</p>
+                      <p>Get purchases approved in minutes</p>
                     </div>
                   </div>
                   <div className="benefit">

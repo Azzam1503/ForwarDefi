@@ -147,7 +147,7 @@ const Loans: React.FC = () => {
       {/* Navigation Breadcrumb */}
       <div className="loans-breadcrumb">
         <div className="breadcrumb-content">
-          <span className="breadcrumb-item">Loans</span>
+          <span className="breadcrumb-item">Purchase</span>
           {state.view === 'create' && (
             <>
               <span className="breadcrumb-separator">›</span>
@@ -157,7 +157,7 @@ const Loans: React.FC = () => {
           {state.view === 'details' && (
             <>
               <span className="breadcrumb-separator">›</span>
-              <span className="breadcrumb-item active">Loan Details</span>
+              <span className="breadcrumb-item active">Purchase Details</span>
             </>
           )}
         </div>

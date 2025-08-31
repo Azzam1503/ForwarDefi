@@ -203,13 +203,13 @@ const Dashboard: React.FC = () => {
           {isAuthenticated && (
             <div className="loans-overview">
               <div className="section-header">
-                <h2 className="section-title">Your Loans Overview</h2>
+                <h2 className="section-title">Your Purchase Overview</h2>
                 <button
                   className="btn-view-all"
                   onClick={() => navigate("/loans")}
                 >
                   <Eye size={16} />
-                  View All Loans
+                  View All Purchases
                 </button>
               </div>
 
@@ -222,7 +222,7 @@ const Dashboard: React.FC = () => {
                     <div className="stat-value">
                       {loansLoading ? "..." : loanSummary.total}
                     </div>
-                    <div className="stat-label">Total Loans</div>
+                    <div className="stat-label">Total Purchases</div>
                   </div>
                 </div>
 
@@ -234,7 +234,7 @@ const Dashboard: React.FC = () => {
                     <div className="stat-value">
                       {loansLoading ? "..." : loanSummary.active}
                     </div>
-                    <div className="stat-label">Active Loans</div>
+                    <div className="stat-label">Active Purchases</div>
                   </div>
                 </div>
 

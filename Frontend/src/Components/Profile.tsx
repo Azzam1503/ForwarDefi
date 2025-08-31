@@ -402,7 +402,7 @@ const Profile: React.FC = () => {
                       <div className="progress-fill" style={{ width: '0%' }}></div>
                     </div>
                     <div className="progress-info">
-                      <span>Complete your first loan to start building credit</span>
+                      <span>Complete your first purchase to start building credit</span>
                     </div>
                   </div>
                 </div>

@@ -49,7 +49,7 @@ const Header: React.FC = () => {
               </Link>
               <Link to="/loans" className="nav-link">
                 <DollarSign size={16} />
-                Loans
+                Purchases
               </Link>
               <Link to="/analytics" className="nav-link">
                 <BarChart3 size={16} />
