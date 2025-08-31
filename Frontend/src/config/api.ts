@@ -12,6 +12,7 @@ export const API_CONFIG = {
       LOGIN: '/users/login',
       PROFILE: '/users/me',
       BY_ID: (id: string) => `/users/${id}`,
+      WALLET_ADDRESS: (id: string) => `/users/${id}/wallet-address`,
     },
     LOANS: {
       CREATE: '/loans',

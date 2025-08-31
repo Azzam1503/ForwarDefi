@@ -243,6 +243,28 @@ export const authApi = {
       throw error;
     }
   },
+
+  saveWalletAddress: async (userId: string, walletAddress: string): Promise<{ message: string; data: User }> => {
+    if (API_CONFIG.ENABLE_LOGGING) {
+      console.log(`🔗 [AUTH] Saving wallet address for user: ${userId}`, { walletAddress });
+    }
+
+    try {
+      const response = await apiClient.put<{ message: string; data: User }>(
+        API_CONFIG.ENDPOINTS.USERS.WALLET_ADDRESS(userId),
+        { wallet_address: walletAddress }
+      );
+      if (API_CONFIG.ENABLE_LOGGING) {
+        console.log(`✅ [AUTH] Wallet address saved successfully for user: ${userId}`);
+      }
+      return response;
+    } catch (error) {
+      if (API_CONFIG.ENABLE_LOGGING) {
+        console.error(`❌ [AUTH] Failed to save wallet address for user: ${userId}`, error);
+      }
+      throw error;
+    }
+  },
 };
 
 // Loan API functions
@@ -417,7 +439,6 @@ export const repaymentApi = {
 };
 
 // Re-export interfaces to ensure they're available
-export type { ApiError, User };
 export { LoanTypes };
 
 export default apiClient;

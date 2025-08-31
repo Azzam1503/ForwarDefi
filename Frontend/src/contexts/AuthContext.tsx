@@ -115,6 +115,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(updatedUser);
       localStorage.setItem('forwardefi_user', JSON.stringify(updatedUser));
       
+      // Save wallet address to database
+      const saveWalletAddressToDb = async () => {
+        try {
+          console.log(`💾 [AUTH CONTEXT] Saving wallet address to database for user: ${user.id}`);
+          await authApi.saveWalletAddress(user.id, address);
+          console.log(`✅ [AUTH CONTEXT] Wallet address saved to database successfully`);
+        } catch (error) {
+          console.error(`❌ [AUTH CONTEXT] Failed to save wallet address to database:`, error);
+          // Don't throw error to avoid breaking the wallet connection flow
+        }
+      };
+      
+      saveWalletAddressToDb();
+      
       console.log(`💾 [AUTH CONTEXT] Updated user data with wallet address`);
     }
   }, [address, user]);

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAccount, useBalance, useEnsName, useBlockNumber } from 'wagmi';
-import { avalancheFuji, avalanche } from 'wagmi/chains';
+import { useAccount, useBalance, useEnsName } from 'wagmi';
 import { 
   Wallet, 
   Copy, 
@@ -22,11 +21,11 @@ const EnhancedWalletInfo: React.FC = () => {
   const { address, isConnected, connector } = useAccount();
   const { data: balance, isLoading: balanceLoading, refetch: refetchBalance } = useBalance({ address });
   const { data: ensName } = useEnsName({ address });
-  const { data: blockNumber } = useBlockNumber();
   
   const [showFullAddress, setShowFullAddress] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [isSavingWallet, setIsSavingWallet] = useState(false);
 
   // Auto-refresh balance every 30 seconds
   useEffect(() => {
@@ -37,6 +36,18 @@ const EnhancedWalletInfo: React.FC = () => {
 
     return () => clearInterval(interval);
   }, [refetchBalance]);
+
+  // Monitor wallet address changes and show saving state
+  useEffect(() => {
+    if (user && address && user.walletAddress !== address) {
+      setIsSavingWallet(true);
+      // Reset saving state after a reasonable time
+      const timer = setTimeout(() => {
+        setIsSavingWallet(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [address, user]);
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -96,11 +107,16 @@ const EnhancedWalletInfo: React.FC = () => {
     <div className="enhanced-wallet-info">
       <div className="wallet-header">
         <div className="wallet-status-indicator">
-          <StatusIcon size={20} color={walletStatus.color} />
+          {isSavingWallet ? (
+            <RefreshCw size={20} color="#3b82f6" className="spinning" />
+          ) : (
+            <StatusIcon size={20} color={walletStatus.color} />
+          )}
           <span className="status-text">
             {walletStatus.status === 'ready' && 'Wallet Ready'}
             {walletStatus.status === 'low' && 'Low Balance'}
             {walletStatus.status === 'empty' && 'Empty Wallet'}
+            {isSavingWallet && 'Saving Wallet...'}
           </span>
         </div>
         
