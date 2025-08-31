@@ -77,7 +77,7 @@ function App() {
           </main>
           <footer className="app-footer">
             <div className="footer-content">
-              <p>&copy; 2024 ForwarDefi. Built on Avalanche. Empowering decentralized finance.</p>
+              <p>&copy; 2025 ForwarDefi. Built on Avalanche. Empowering decentralized finance.</p>
             </div>
           </footer>
         </div>
