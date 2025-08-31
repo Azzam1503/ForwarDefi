@@ -190,7 +190,7 @@ const LoanApplicationForm: React.FC<LoanApplicationFormProps> = ({ onSuccess, on
         <p>Get instant access to crypto-backed lending</p>
         
         <div className="progress-steps">
-          <div className={`step ${step === 'form' ? 'active' : step !== 'form' ? 'completed' : ''}`}>
+          <div className={`step ${step === 'form' ? 'active' : ['calculation', 'review', 'submitting'].includes(step) ? 'completed' : ''}`}>
             <div className="step-number">1</div>
             <span>Loan Details</span>
           </div>
