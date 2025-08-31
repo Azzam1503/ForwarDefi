@@ -223,7 +223,7 @@ const EnhancedWalletInfo: React.FC = () => {
               <span className="value">--</span>
             </div>
             <div className="bnpl-item">
-              <span className="label">Active Loans:</span>
+              <span className="label">Active Purchases:</span>
               <span className="value">0</span>
             </div>
             <div className="bnpl-item">

@@ -67,7 +67,7 @@ const Dashboard: React.FC = () => {
     },
     {
       icon: <Activity size={24} />,
-      label: "Loans Processed",
+      label: "Purchases Processed",
       value: "456",
       change: "+15.3%",
       positive: true
@@ -102,7 +102,7 @@ const Dashboard: React.FC = () => {
       id: 'create-loan',
       icon: <DollarSign size={32} />,
       title: 'Create Loan',
-      description: 'Request instant crypto loans with competitive rates and flexible terms',
+      description: 'Request instant crypto transfers with competitive rates and flexible terms',
       benefits: ['Instant approval', 'Low interest rates', 'Flexible repayment'],
       comingSoon: false,
       action: () => navigate('/loans')
@@ -110,8 +110,8 @@ const Dashboard: React.FC = () => {
     {
       id: 'my-loans',
       icon: <CreditCard size={32} />,
-      title: 'My Loans',
-      description: 'View and manage your active loan agreements and payment schedules',
+      title: 'My Purchases',
+      description: 'View and manage your active purchase agreements and payment schedules',
       benefits: ['Track payments', 'Manage terms', 'View history'],
       comingSoon: false,
       action: () => navigate('/loans')
@@ -128,8 +128,8 @@ const Dashboard: React.FC = () => {
     {
       id: 'insurance',
       icon: <Shield size={32} />,
-      title: 'Loan Protection',
-      description: 'Protect your loans with smart contract insurance and risk management',
+      title: 'Purchase Protection',
+      description: 'Protect your transfers with smart contract insurance and risk management',
       benefits: ['Smart contracts', 'Risk mitigation', 'Automated protection'],
       comingSoon: true
     }
@@ -148,7 +148,7 @@ const Dashboard: React.FC = () => {
           <div className="hero-features">
             <div className="hero-feature">
               <Zap size={20} />
-              <span>Instant Loans</span>
+              <span>Instant Transfers</span>
             </div>
             <div className="hero-feature">
               <Shield size={20} />
@@ -200,10 +200,10 @@ const Dashboard: React.FC = () => {
         {isAuthenticated && (
           <div className="loans-overview">
             <div className="section-header">
-              <h2 className="section-title">Your Loans Overview</h2>
+              <h2 className="section-title">Your Purchases Overview</h2>
               <button className="btn-view-all" onClick={() => navigate('/loans')}>
                 <Eye size={16} />
-                View All Loans
+                View All Purchases
               </button>
             </div>
             
@@ -214,7 +214,7 @@ const Dashboard: React.FC = () => {
                 </div>
                 <div className="stat-content">
                   <div className="stat-value">{loansLoading ? '...' : loanSummary.total}</div>
-                  <div className="stat-label">Total Loans</div>
+                  <div className="stat-label">Total Purchases</div>
                 </div>
               </div>
 
@@ -224,7 +224,7 @@ const Dashboard: React.FC = () => {
                 </div>
                 <div className="stat-content">
                   <div className="stat-value">{loansLoading ? '...' : loanSummary.active}</div>
-                  <div className="stat-label">Active Loans</div>
+                  <div className="stat-label">Active Purchases</div>
                 </div>
               </div>
 
@@ -257,7 +257,7 @@ const Dashboard: React.FC = () => {
                 onClick={() => navigate('/loans')}
               >
                 <Plus size={16} />
-                Apply for New Loan
+                Apply for New Purchase
               </button>
               
               <button 
@@ -265,7 +265,7 @@ const Dashboard: React.FC = () => {
                 onClick={() => navigate('/loans')}
               >
                 <Eye size={16} />
-                Manage Existing Loans
+                Manage Existing Purchase
               </button>
             </div>
           </div>

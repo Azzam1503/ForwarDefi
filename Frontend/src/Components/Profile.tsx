@@ -365,7 +365,7 @@ const Profile: React.FC = () => {
                       </div>
                       <div className="stat-content">
                         <div className="stat-value">0</div>
-                        <div className="stat-label">Active Loans</div>
+                        <div className="stat-label">Active Purchases</div>
                         <div className="stat-change neutral">-</div>
                       </div>
                     </div>
