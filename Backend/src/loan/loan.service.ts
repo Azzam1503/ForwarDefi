@@ -115,7 +115,7 @@ export class LoanService {
 
           const createOrderDto = {
             purchaseAmount: (createLoanDto.amount * 1000000).toString(), // Convert to USDC units (6 decimals)
-            merchant: '0xD4Fa7d8c4462E002fc6978A650141bCC7bf0db30', // Hardcoded merchant address (treasury address from deployment)
+            merchant: '0xCACCbc57f9f69847EA7C637111F9ce2F34265a13', // Hardcoded merchant address (treasury address from deployment)
             dueInSeconds: (30 * 24 * 60 * 60).toString(), // 30 days from now
             installments: createLoanDto.installments ?? 1, // Default to 1 if not provided
           };

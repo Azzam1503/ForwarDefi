@@ -13,6 +13,7 @@ import {
   TransactionType,
   TransactionSubtype,
 } from 'src/transaction/entities/transaction.entity';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class RepaymentService {
@@ -23,6 +24,7 @@ export class RepaymentService {
     private readonly defiPaymentsService: DefiPaymentsService,
     private readonly transactionService: TransactionService,
     private readonly userService: UserService,
+    private readonly configService: ConfigService,
   ) {}
 
   private generateId(): string {
@@ -226,6 +228,46 @@ export class RepaymentService {
       // If we have a wallet address, try blockchain integration
       if (buyerAddress) {
         try {
+          // Get contract address for approval
+          const contractAddress = this.configService.get<string>(
+            'BNPL_CONTRACT_ADDRESS',
+          );
+          if (!contractAddress) {
+            throw new Error('BNPL_CONTRACT_ADDRESS not configured');
+          }
+
+          // Check if user has sufficient allowance for repayment
+          this.logger.debug(
+            correlation_id,
+            'Checking user token allowance for repayment',
+          );
+          const userTokenStatus =
+            await this.defiPaymentsService.checkUserTokenStatus(
+              correlation_id,
+              buyerAddress,
+            );
+
+          // If insufficient allowance, approve tokens
+          if (
+            !userTokenStatus.hasAllowance ||
+            BigInt(userTokenStatus.allowance) < BigInt(amount * 1000000)
+          ) {
+            this.logger.debug(
+              correlation_id,
+              'Insufficient allowance for repayment, approving tokens',
+            );
+            const approvalAmount = (amount * 1000000).toString();
+            await this.defiPaymentsService.approveTokens(
+              correlation_id,
+              contractAddress,
+              approvalAmount,
+            );
+            this.logger.debug(
+              correlation_id,
+              'Tokens approved successfully for repayment',
+            );
+          }
+
           // Process repayment on blockchain using DefiPaymentsService
           const repayInstallmentDto = {
             orderId: orderId.toString(),

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
 import { RepaymentService } from './repayment.service';
 import { RepaymentController } from './repayment.controller';
 import { Repayment } from './entities/repayment.entity';
@@ -11,6 +12,7 @@ import { UserModule } from 'src/user/user.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Repayment]),
+    ConfigModule,
     LoggerModule,
     DefiPaymentsModule,
     TransactionModule,
