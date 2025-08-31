@@ -1,4 +1,4 @@
-import { API_CONFIG, getApiUrl } from '../config/api';
+import { API_CONFIG, getApiUrl } from "../config/api";
 
 // API Types based on backend DTOs
 export interface SignUpRequest {
@@ -63,11 +63,11 @@ class ApiClient {
     const url = `${this.baseURL}${endpoint}`;
 
     // Get token from localStorage if available
-    const token = localStorage.getItem('forwardefi_token');
+    const token = localStorage.getItem("forwardefi_token");
 
     const config: RequestInit = {
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...(token && { Authorization: `Bearer ${token}` }),
         ...options.headers,
       },
@@ -75,9 +75,9 @@ class ApiClient {
     };
 
     if (API_CONFIG.ENABLE_LOGGING) {
-      console.log(`🌐 [API] ${options.method || 'GET'} ${url}`);
+      console.log(`🌐 [API] ${options.method || "GET"} ${url}`);
       console.log(`📤 [API] Request config:`, {
-        method: options.method || 'GET',
+        method: options.method || "GET",
         headers: config.headers,
         body: options.body ? JSON.parse(options.body as string) : undefined,
       });
@@ -87,7 +87,9 @@ class ApiClient {
       const response = await fetch(url, config);
 
       if (API_CONFIG.ENABLE_LOGGING) {
-        console.log(`📡 [API] Response status: ${response.status} ${response.statusText}`);
+        console.log(
+          `📡 [API] Response status: ${response.status} ${response.statusText}`
+        );
       }
 
       if (!response.ok) {
@@ -97,8 +99,8 @@ class ApiClient {
         }
         throw {
           statusCode: response.status,
-          message: errorData.message || 'An error occurred',
-          error: errorData.error || 'API Error',
+          message: errorData.message || "An error occurred",
+          error: errorData.error || "API Error",
         } as ApiError;
       }
 
@@ -115,8 +117,9 @@ class ApiClient {
         }
         throw {
           statusCode: 0,
-          message: 'Network error - please check your connection and ensure the backend is running',
-          error: 'NETWORK_ERROR',
+          message:
+            "Network error - please check your connection and ensure the backend is running",
+          error: "NETWORK_ERROR",
         } as ApiError;
       }
       throw error;
@@ -125,34 +128,34 @@ class ApiClient {
 
   async post<T>(endpoint: string, data: any): Promise<T> {
     return this.request<T>(endpoint, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(data),
     });
   }
 
   async get<T>(endpoint: string): Promise<T> {
     return this.request<T>(endpoint, {
-      method: 'GET',
+      method: "GET",
     });
   }
 
   async put<T>(endpoint: string, data: any): Promise<T> {
     return this.request<T>(endpoint, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(data),
     });
   }
 
   async patch<T>(endpoint: string, data: any): Promise<T> {
     return this.request<T>(endpoint, {
-      method: 'PATCH',
+      method: "PATCH",
       body: JSON.stringify(data),
     });
   }
 
   async delete<T>(endpoint: string): Promise<T> {
     return this.request<T>(endpoint, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 }
@@ -173,14 +176,20 @@ export const authApi = {
     }
 
     try {
-      const response = await apiClient.post<SignUpResponse>(API_CONFIG.ENDPOINTS.USERS.SIGNUP, userData);
+      const response = await apiClient.post<SignUpResponse>(
+        API_CONFIG.ENDPOINTS.USERS.SIGNUP,
+        userData
+      );
       if (API_CONFIG.ENABLE_LOGGING) {
         console.log(`✅ [AUTH] Signup successful for user: ${userData.email}`);
       }
       return response;
     } catch (error) {
       if (API_CONFIG.ENABLE_LOGGING) {
-        console.error(`❌ [AUTH] Signup failed for user: ${userData.email}`, error);
+        console.error(
+          `❌ [AUTH] Signup failed for user: ${userData.email}`,
+          error
+        );
       }
       throw error;
     }
@@ -188,19 +197,31 @@ export const authApi = {
 
   signIn: async (credentials: SignInRequest): Promise<SignInResponse> => {
     if (API_CONFIG.ENABLE_LOGGING) {
-      console.log(`🔐 [AUTH] Starting signin process for user: ${credentials.email}`);
+      console.log(
+        `🔐 [AUTH] Starting signin process for user: ${credentials.email}`
+      );
     }
 
     try {
-      const response = await apiClient.post<SignInResponse>(API_CONFIG.ENDPOINTS.USERS.LOGIN, credentials);
+      const response = await apiClient.post<SignInResponse>(
+        API_CONFIG.ENDPOINTS.USERS.LOGIN,
+        credentials
+      );
       if (API_CONFIG.ENABLE_LOGGING) {
-        console.log(`✅ [AUTH] Signin successful for user: ${credentials.email}`);
-        console.log(`🎫 [AUTH] JWT token received (length: ${response.data.token.length})`);
+        console.log(
+          `✅ [AUTH] Signin successful for user: ${credentials.email}`
+        );
+        console.log(
+          `🎫 [AUTH] JWT token received (length: ${response.data.token.length})`
+        );
       }
       return response;
     } catch (error) {
       if (API_CONFIG.ENABLE_LOGGING) {
-        console.error(`❌ [AUTH] Signin failed for user: ${credentials.email}`, error);
+        console.error(
+          `❌ [AUTH] Signin failed for user: ${credentials.email}`,
+          error
+        );
       }
       throw error;
     }
@@ -212,9 +233,13 @@ export const authApi = {
     }
 
     try {
-      const response = await apiClient.get<{ message: string; data: User }>(API_CONFIG.ENDPOINTS.USERS.PROFILE);
+      const response = await apiClient.get<{ message: string; data: User }>(
+        API_CONFIG.ENDPOINTS.USERS.PROFILE
+      );
       if (API_CONFIG.ENABLE_LOGGING) {
-        console.log(`✅ [AUTH] Profile fetched successfully for user: ${response.data.email}`);
+        console.log(
+          `✅ [AUTH] Profile fetched successfully for user: ${response.data.email}`
+        );
       }
       return response;
     } catch (error) {
@@ -225,15 +250,21 @@ export const authApi = {
     }
   },
 
-  getUserById: async (userId: string): Promise<{ message: string; data: User }> => {
+  getUserById: async (
+    userId: string
+  ): Promise<{ message: string; data: User }> => {
     if (API_CONFIG.ENABLE_LOGGING) {
       console.log(`👤 [AUTH] Fetching user by ID: ${userId}`);
     }
 
     try {
-      const response = await apiClient.get<{ message: string; data: User }>(API_CONFIG.ENDPOINTS.USERS.BY_ID(userId));
+      const response = await apiClient.get<{ message: string; data: User }>(
+        API_CONFIG.ENDPOINTS.USERS.BY_ID(userId)
+      );
       if (API_CONFIG.ENABLE_LOGGING) {
-        console.log(`✅ [AUTH] User fetched successfully: ${response.data.email}`);
+        console.log(
+          `✅ [AUTH] User fetched successfully: ${response.data.email}`
+        );
       }
       return response;
     } catch (error) {
@@ -246,10 +277,12 @@ export const authApi = {
 };
 
 // Loan API functions
-import * as LoanTypes from '../types/loan';
+import * as LoanTypes from "../types/loan";
 
 export const loanApi = {
-  createLoan: async (loanData: LoanTypes.CreateLoanRequest): Promise<LoanTypes.LoanApiResponse> => {
+  createLoan: async (
+    loanData: LoanTypes.CreateLoanRequest
+  ): Promise<LoanTypes.LoanApiResponse> => {
     if (API_CONFIG.ENABLE_LOGGING) {
       console.log(`💰 [LOAN] Creating new loan for user: ${loanData.user_id}`, {
         amount: loanData.amount,
@@ -259,7 +292,10 @@ export const loanApi = {
     }
 
     try {
-      const response = await apiClient.post<LoanTypes.LoanApiResponse>(API_CONFIG.ENDPOINTS.LOANS.CREATE, loanData);
+      const response = await apiClient.post<LoanTypes.LoanApiResponse>(
+        API_CONFIG.ENDPOINTS.LOANS.CREATE,
+        loanData
+      );
       if (API_CONFIG.ENABLE_LOGGING) {
         console.log(`✅ [LOAN] Loan created successfully:`, response.data);
       }
@@ -278,9 +314,13 @@ export const loanApi = {
     }
 
     try {
-      const response = await apiClient.get<LoanTypes.LoansApiResponse>(API_CONFIG.ENDPOINTS.LOANS.BY_USER(userId));
+      const response = await apiClient.get<LoanTypes.LoansApiResponse>(
+        API_CONFIG.ENDPOINTS.LOANS.BY_USER(userId)
+      );
       if (API_CONFIG.ENABLE_LOGGING) {
-        console.log(`✅ [LOAN] Found ${response.data.length} loans for user: ${userId}`);
+        console.log(
+          `✅ [LOAN] Found ${response.data.length} loans for user: ${userId}`
+        );
       }
       return response;
     } catch (error) {
@@ -297,7 +337,9 @@ export const loanApi = {
     }
 
     try {
-      const response = await apiClient.get<LoanTypes.LoansApiResponse>(API_CONFIG.ENDPOINTS.LOANS.ALL);
+      const response = await apiClient.get<LoanTypes.LoansApiResponse>(
+        API_CONFIG.ENDPOINTS.LOANS.ALL
+      );
       if (API_CONFIG.ENABLE_LOGGING) {
         console.log(`✅ [LOAN] Found ${response.data.length} total loans`);
       }
@@ -316,7 +358,9 @@ export const loanApi = {
     }
 
     try {
-      const response = await apiClient.get<LoanTypes.LoanApiResponse>(API_CONFIG.ENDPOINTS.LOANS.BY_ID(loanId));
+      const response = await apiClient.get<LoanTypes.LoanApiResponse>(
+        API_CONFIG.ENDPOINTS.LOANS.BY_ID(loanId)
+      );
       if (API_CONFIG.ENABLE_LOGGING) {
         console.log(`✅ [LOAN] Loan found:`, response.data);
       }
@@ -329,13 +373,19 @@ export const loanApi = {
     }
   },
 
-  updateLoan: async (loanId: string, updateData: LoanTypes.UpdateLoanRequest): Promise<LoanTypes.LoanApiResponse> => {
+  updateLoan: async (
+    loanId: string,
+    updateData: LoanTypes.UpdateLoanRequest
+  ): Promise<LoanTypes.LoanApiResponse> => {
     if (API_CONFIG.ENABLE_LOGGING) {
       console.log(`📝 [LOAN] Updating loan: ${loanId}`, updateData);
     }
 
     try {
-      const response = await apiClient.patch<LoanTypes.LoanApiResponse>(API_CONFIG.ENDPOINTS.LOANS.BY_ID(loanId), updateData);
+      const response = await apiClient.patch<LoanTypes.LoanApiResponse>(
+        API_CONFIG.ENDPOINTS.LOANS.BY_ID(loanId),
+        updateData
+      );
       if (API_CONFIG.ENABLE_LOGGING) {
         console.log(`✅ [LOAN] Loan updated successfully:`, response.data);
       }
@@ -348,15 +398,26 @@ export const loanApi = {
     }
   },
 
-  updateLoanStatus: async (loanId: string, status: LoanTypes.LoanStatus): Promise<LoanTypes.LoanApiResponse> => {
+  updateLoanStatus: async (
+    loanId: string,
+    status: LoanTypes.LoanStatus
+  ): Promise<LoanTypes.LoanApiResponse> => {
     if (API_CONFIG.ENABLE_LOGGING) {
-      console.log(`🔄 [LOAN] Updating loan status to ${status} for loan: ${loanId}`);
+      console.log(
+        `🔄 [LOAN] Updating loan status to ${status} for loan: ${loanId}`
+      );
     }
 
     try {
-      const response = await apiClient.patch<LoanTypes.LoanApiResponse>(API_CONFIG.ENDPOINTS.LOANS.UPDATE_STATUS(loanId), { status });
+      const response = await apiClient.patch<LoanTypes.LoanApiResponse>(
+        API_CONFIG.ENDPOINTS.LOANS.UPDATE_STATUS(loanId),
+        { status }
+      );
       if (API_CONFIG.ENABLE_LOGGING) {
-        console.log(`✅ [LOAN] Loan status updated successfully:`, response.data);
+        console.log(
+          `✅ [LOAN] Loan status updated successfully:`,
+          response.data
+        );
       }
       return response;
     } catch (error) {
@@ -389,7 +450,7 @@ export const loanApi = {
 // Transaction API functions (for future use)
 export const transactionApi = {
   logTransaction: async (transactionData: any) => {
-    return apiClient.post('/transactions', transactionData);
+    return apiClient.post("/transactions", transactionData);
   },
 
   getUserTransactions: async (userId: string) => {
@@ -404,7 +465,7 @@ export const transactionApi = {
 // Repayment API functions (for future use)
 export const repaymentApi = {
   createRepayment: async (repaymentData: any) => {
-    return apiClient.post('/repayments', repaymentData);
+    return apiClient.post("/repayments", repaymentData);
   },
 
   getLoanRepayments: async (loanId: string) => {
@@ -417,7 +478,6 @@ export const repaymentApi = {
 };
 
 // Re-export interfaces to ensure they're available
-export type { ApiError, User };
 export { LoanTypes };
 
 export default apiClient;
