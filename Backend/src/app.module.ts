@@ -2,6 +2,10 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
+import { LoanModule } from './loan/loan.module';
+import { RepaymentModule } from './repayment/repayment.module';
+import { TransactionModule } from './transaction/transaction.module';
+import { AvalancheModule } from './avalanche/avalanche.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoggerModule } from './core/logger/logger.module';
 import { ConfigModule } from '@nestjs/config';
@@ -21,6 +25,10 @@ import { ConfigModule } from '@nestjs/config';
     }),
     LoggerModule,
     UserModule,
+    LoanModule,
+    RepaymentModule,
+    TransactionModule,
+    AvalancheModule,
   ],
   controllers: [AppController],
   providers: [AppService],

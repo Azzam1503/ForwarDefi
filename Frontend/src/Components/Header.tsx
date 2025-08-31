@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { User, LogOut, Settings, CreditCard } from 'lucide-react';
+import { User, LogOut, Settings, CreditCard, Home, DollarSign } from 'lucide-react';
 import AuthModal from './auth/AuthModal';
 import ProtectedConnectButton from './ProtectedConnectButton';
 
@@ -30,6 +30,19 @@ const Header: React.FC = () => {
             ForwarDefi
           </h1>
           <span className="app-subtitle">Crypto BNPL Platform</span>
+          
+          {isAuthenticated && (
+            <nav className="main-nav">
+              <Link to="/" className="nav-link">
+                <Home size={16} />
+                Dashboard
+              </Link>
+              <Link to="/loans" className="nav-link">
+                <DollarSign size={16} />
+                Loans
+              </Link>
+            </nav>
+          )}
         </div>
 
         <div className="header-right">
