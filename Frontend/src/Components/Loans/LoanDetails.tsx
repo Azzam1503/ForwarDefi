@@ -245,7 +245,7 @@ const PurchaseDetails: React.FC<PurchaseDetailsProps> = ({ loanId, onBack, onEdi
       <div className="loan-details-content">
         <div className="details-grid">
           {/* Purchase Overview Card */}
-          <div className="details-card loan-overview">
+          <div className="details-card loan-overview">  
             <div className="card-header">
               <DollarSign size={20} />
               <h3>Purchase Overview</h3>

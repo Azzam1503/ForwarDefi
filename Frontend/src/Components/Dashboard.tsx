@@ -122,7 +122,8 @@ const Dashboard: React.FC = () => {
       title: 'Payment History',
       description: 'Track your payment history and monitor your credit score improvement',
       benefits: ['Credit scoring', 'Payment analytics', 'Performance tracking'],
-      comingSoon: true
+      comingSoon: false,
+      action: () => navigate('/history')
     },
     {
       id: 'insurance',
